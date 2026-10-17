@@ -8,18 +8,16 @@ const sections:{title:string;items:{title:string;icon:NavIcon;anchor?:string;hre
   {title:'WORKSPACE',items:[
     {title:'Inicio',icon:'grid',anchor:'inicio'},
     {title:'Operaciones',icon:'chart',anchor:'operaciones'},
-    {title:'Facturas',icon:'file',anchor:'facturas'},
-    {title:'Aprobaciones',icon:'users',anchor:'approvals'},
+    {title:'Facturas',icon:'file',href:'/facturas'},
+    {title:'Aprobaciones',icon:'users',href:'/aprobaciones'},
     {title:'Políticas',icon:'shield',href:'/politicas'},
     {title:'Beneficiarios',icon:'wallet',href:'/beneficiarios'},
-  ]},
-  {title:'PRÓXIMAMENTE',items:[
-    {title:'Auditoría',icon:'audit'},
+    {title:'Auditoría',icon:'audit',href:'/auditoria'},
   ]},
 ];
 
 export function AppShell({children,alerts,onPendingClick,onSearchClick,currentPage='dashboard'}:{
-  children:ReactNode;alerts:number;onPendingClick:()=>void;onSearchClick:()=>void;currentPage?:'dashboard'|'policies'|'beneficiaries';
+  children:ReactNode;alerts:number;onPendingClick:()=>void;onSearchClick:()=>void;currentPage?:'dashboard'|'policies'|'beneficiaries'|'invoices'|'invoice-detail'|'approvals'|'audit';
 }){
   const [menuOpen,setMenuOpen]=useState(false);
   const [notificationsOpen,setNotificationsOpen]=useState(false);
@@ -34,7 +32,7 @@ export function AppShell({children,alerts,onPendingClick,onSearchClick,currentPa
     {menuOpen&&<button className="mobile-scrim" type="button" aria-label="Cerrar menú" onClick={()=>setMenuOpen(false)}/>}
     <header className="topbar">
       <a href="/" className="brand-logo" aria-label="Blinka Decision Engine, inicio"><span className="brand-mark" aria-hidden="true"><span/><span/></span><span className="brand-wordmark">blinka<span className="brand-dot">.</span></span><span className="brand-divider"/><span className="brand-product">DECISION ENGINE</span></a>
-      <div className="topbar-center"><span className="header-slash">/</span><span>ATLAS GLOBAL INC.</span><span className="header-slash">/</span><span className="header-current">{currentPage === 'policies' ? 'POLICY CENTER' : currentPage === 'beneficiaries' ? 'TRUST REGISTRY' : 'OVERVIEW'}</span></div>
+      <div className="topbar-center"><span className="header-slash">/</span><span>ATLAS GLOBAL INC.</span><span className="header-slash">/</span><span className="header-current">{currentPage === 'policies' ? 'POLICY CENTER' : currentPage === 'beneficiaries' ? 'TRUST REGISTRY' : currentPage === 'invoices' ? 'DOCUMENT STUDIO' : currentPage === 'invoice-detail' ? 'INVOICE CASE' : currentPage === 'approvals' ? 'HUMAN OVERSIGHT' : currentPage === 'audit' ? 'AUDIT TRAIL' : 'OVERVIEW'}</span></div>
       <div className="topbar-right">
         <span className="header-sandbox"><i/> SANDBOX MODE</span>
         <button type="button" className="topbar-tool" onClick={onSearchClick} aria-label="Buscar factura" title="Buscar factura"><Icon name="search" size={18}/></button>
@@ -50,7 +48,7 @@ export function AppShell({children,alerts,onPendingClick,onSearchClick,currentPa
         {sections.map((group,i)=><div className="nav-group" key={group.title}>
           <span className="nav-heading">{i===0?'01':'02'}</span>
           {group.items.map(item=>{
-            const active = item.href === '/politicas' ? currentPage === 'policies' : item.href === '/beneficiarios' ? currentPage === 'beneficiaries' : item.anchor === 'inicio' && currentPage === 'dashboard';
+            const active = item.href === '/auditoria' ? currentPage === 'audit' : item.href === '/aprobaciones' ? currentPage === 'approvals' : item.href === '/politicas' ? currentPage === 'policies' : item.href === '/beneficiarios' ? currentPage === 'beneficiaries' : item.href === '/facturas' ? (currentPage === 'invoices' || currentPage === 'invoice-detail') : item.anchor === 'inicio' && currentPage === 'dashboard';
             const classes = `nav-item ${!item.anchor&&!item.href?'nav-disabled':''} ${active?'nav-active':''}`;
             const content = <><Icon name={item.icon} size={19}/><span className="nav-tooltip">{item.title}</span></>;
             return item.href ? <a href={item.href} key={item.title} className={classes} aria-label={item.title} aria-current={active?'page':undefined} title={item.title} onClick={()=>setMenuOpen(false)}>{content}</a> : <button key={item.title} type="button" className={classes} title={item.anchor?item.title:`${item.title} · Disponible próximamente`} aria-label={item.title} aria-current={active?'page':undefined} disabled={!item.anchor} onClick={()=>item.anchor&&move(item.anchor)}>{content}</button>;

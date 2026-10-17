@@ -1,0 +1,6 @@
+FACTURA: HCK-2026-443
+Proveedor: Nexa Software
+Fecha de vencimiento: 29/10/2026
+Moneda: COP
+Total: 650000.00
+Descripción: Valor no convertible sin tasa FX configurada.

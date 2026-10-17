@@ -10,6 +10,10 @@ export function evaluateDemoInvoice(
   policy: PaymentPolicy,
   remainingBudget: number,
 ): DecisionResult {
+  if (!Number.isFinite(invoice.amount) || invoice.amount <= 0) return {
+    status: 'pending', ruleCode: 'INVALID_AMOUNT', reason: 'El importe es inválido y requiere verificación humana.',
+    checks: ['No se puede comparar un importe no válido contra las políticas'],
+  };
   if (invoice.duplicateOf) return {
     status: 'blocked', ruleCode: 'DUPLICATE_INVOICE',
     reason: `Coincide con la factura ${invoice.duplicateOf} registrada anteriormente. No se permiten cobros duplicados.`,
@@ -19,6 +23,11 @@ export function evaluateDemoInvoice(
     status: 'blocked', ruleCode: 'VENDOR_NOT_ALLOWED',
     reason: 'El beneficiario no figura en la lista de proveedores autorizados de la empresa.',
     checks: ['Beneficiario fuera de lista permitida', 'No se genera autorización'],
+  };
+  if (invoice.currency !== 'USD') return {
+    status: 'pending', ruleCode: 'CURRENCY_REVIEW_REQUIRED',
+    reason: 'La factura no está expresada en USD. No existe una tasa de cambio verificable configurada.',
+    checks: ['Moneda no convertible sin tasa acordada', 'No se autoriza de forma autónoma'],
   };
   if (invoice.agreementLimit !== undefined && invoice.amount > invoice.agreementLimit) return {
     status: 'blocked', ruleCode: 'AGREEMENT_MISMATCH',

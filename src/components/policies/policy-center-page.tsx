@@ -6,6 +6,7 @@ import { Icon } from '@/components/ui/icon';
 import { PolicyEyebrow, PolicyMoneyField, PolicyPanel, PolicyPanelHeading, PolicyRule } from './policy-primitives';
 import { getDemoPolicy, getDemoPolicyHistory, POLICY_FIELD_LABEL, publishDemoPolicy, validateDemoPolicy, type PolicyAmountKey, type PolicyHistoryEvent, type PolicyValues } from '@/lib/policy-store';
 import { DEMO_POLICY, INITIAL_INVOICES } from '@/lib/mock-data';
+import { getInvoices, INVOICE_UPDATED_EVENT } from '@/lib/invoice-registry';
 import { evaluateDemoInvoice } from '@/lib/decision-engine';
 import { money } from '@/lib/format';
 import type { Invoice, PaymentPolicy } from '@/types/payments';
@@ -48,6 +49,8 @@ function OutcomeBadge({status}:{status:'authorized'|'blocked'|'pending'}){
 }
 
 export function PolicyCenterPage(){
+  const [pendingCount,setPendingCount]=useState(INITIAL_INVOICES.filter(x=>x.status==='pending').length);
+  useEffect(()=>{const refresh=()=>setPendingCount(getInvoices().filter(x=>x.status==='pending').length);refresh();window.addEventListener(INVOICE_UPDATED_EVENT,refresh);window.addEventListener('storage',refresh);return()=>{window.removeEventListener(INVOICE_UPDATED_EVENT,refresh);window.removeEventListener('storage',refresh);};},[]);
   const [active,setActive]=useState<PaymentPolicy>(DEMO_POLICY);
   const [form,setForm]=useState<Record<PolicyAmountKey,string>>(defaults);
   const [history,setHistory]=useState<PolicyHistoryEvent[]>([]);
@@ -123,7 +126,7 @@ export function PolicyCenterPage(){
     setToast('Configuración y eventos exportados a JSON.');
   };
 
-  return <AppShell alerts={0} onPendingClick={()=>window.location.assign('/#facturas')} onSearchClick={()=>window.location.assign('/#facturas')} currentPage="policies">
+  return <AppShell alerts={pendingCount} onPendingClick={()=>window.location.assign('/aprobaciones')} onSearchClick={()=>window.location.assign('/facturas')} currentPage="policies">
     <div className="policies-page">
       <section className="policies-hero" aria-labelledby="policy-page-title">
         <video autoPlay muted loop playsInline preload="none" aria-hidden="true" poster="/metal-human.jpg" className="policies-hero-video"><source src="/metal-human.mp4" type="video/mp4"/></video>

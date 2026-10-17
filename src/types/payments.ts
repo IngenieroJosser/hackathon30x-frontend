@@ -1,3 +1,5 @@
+import type { InvoiceDocument } from './invoice-workflow';
+
 /** Tipos de dominio para el frontend. No representan movimientos bancarios. */
 export type DecisionStatus = 'authorized' | 'blocked' | 'pending' | 'unprocessed';
 
@@ -10,7 +12,7 @@ export type Invoice = {
   countryCode: string;
   category: string;
   amount: number;
-  currency: 'USD';
+  currency: string;
   dueDate: string; // ISO 8601
   receivedAt: string; // ISO 8601
   status: DecisionStatus;
@@ -24,8 +26,16 @@ export type Invoice = {
   duplicateOf?: string;
   agreementLimit?: number;
   reviewedBy?: string;
+  reviewedAt?: string;
+  reviewNote?: string;
   beneficiaryRevision?: string; // referencia ficticia del proveedor al decidir
   policyVersion?: string; // versión asociada a la evaluación o resolución ficticia
+  document?: InvoiceDocument;
+  issuedAt?: string;
+  description?: string;
+  evaluatedAt?: string;
+  verified?: boolean;
+  sourceType?: 'seed' | 'uploaded' | 'manual';
 };
 
 export type PaymentPolicy = {

@@ -1,0 +1,6 @@
+FACTURA: HCK-2026-442
+Proveedor: Atlas Research
+Fecha de vencimiento: 31/10/2026
+Moneda: USD
+Total: 1750.00
+Descripción: Consultoría de datos - requiere aprobación humana.

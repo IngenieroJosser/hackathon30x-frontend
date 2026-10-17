@@ -5,6 +5,7 @@ import { AppShell } from '@/components/layout/app-shell';
 import { Icon } from '@/components/ui/icon';
 import { money } from '@/lib/format';
 import { INITIAL_INVOICES } from '@/lib/mock-data';
+import { getInvoices, INVOICE_UPDATED_EVENT } from '@/lib/invoice-registry';
 import { getDemoPolicy } from '@/lib/policy-store';
 import {
   DEMO_BENEFICIARIES, COUNTRIES, getDemoBeneficiaries, getRegistryEvents,
@@ -46,6 +47,8 @@ function RegistryHero({onNew,onExplore,count}:{onNew:()=>void;onExplore:()=>void
 }
 
 export function BeneficiariesPage(){
+  const [pendingCount,setPendingCount]=useState(INITIAL_INVOICES.filter(x=>x.status==='pending').length);
+  useEffect(()=>{const refresh=()=>setPendingCount(getInvoices().filter(x=>x.status==='pending').length);refresh();window.addEventListener(INVOICE_UPDATED_EVENT,refresh);window.addEventListener('storage',refresh);return()=>{window.removeEventListener(INVOICE_UPDATED_EVENT,refresh);window.removeEventListener('storage',refresh);};},[]);
   const [items,setItems]=useState<Beneficiary[]>(DEMO_BENEFICIARIES);
   const [events,setEvents]=useState<RegistryEvent[]>([]);
   const [selectedId,setSelectedId]=useState('ben-02');
@@ -121,7 +124,7 @@ export function BeneficiariesPage(){
     const link=document.createElement('a');link.href=url;link.download='blinka-beneficiarios-demo.json';document.body.append(link);link.click();link.remove();URL.revokeObjectURL(url);
     setToast('Directorio y cambios exportados en formato JSON.');
   };
-  return <AppShell currentPage="beneficiaries" alerts={INITIAL_INVOICES.filter(i=>i.status==='pending').length} onPendingClick={()=>{window.location.href='/#facturas';}} onSearchClick={focusSearch}>
+  return <AppShell currentPage="beneficiaries" alerts={pendingCount} onPendingClick={()=>{window.location.href='/aprobaciones';}} onSearchClick={focusSearch}>
     <div className="bn-page"><RegistryHero count={counts.total} onNew={()=>setEditing(null)} onExplore={()=>registryRef.current?.scrollIntoView({behavior:'smooth',block:'start'})}/>
       <div className="bn-container">
         <div className="bn-section-lead"><div><span className="bn-eyebrow">TRUST INFRASTRUCTURE / 01</span><h2>El control empieza<br/><em>antes del pago.</em></h2><p>El agente consulta este directorio al decidir si un beneficiario está permitido y cuánto contempla su acuerdo.</p></div><div className="bn-system-state"><i/> DIRECTORIO ACTIVO <span>V1.0 / LOCAL SANDBOX</span></div></div>

@@ -1,12 +1,10 @@
-# Blinka Decision Engine · Cinematic Edition v5
+# Blinka Decision Engine · Cinematic v9
 
-Frontend del reto **30X · Blinka — Agentes que pagan por la empresa**, diseñado como concepto por **ZYRA**. Rutas implementadas: `/`, `/politicas` y `/beneficiarios`.
+**Concepto de producto ZYRA** para la hackathon 30X: un agente que interpreta facturas y decide autorizar en simulación, bloquear o escalar conforme a reglas configurables. No es un producto oficial de Blinka. **Todos los datos son sintéticos y nunca se mueve dinero.**
 
-> **No es software de Blinka ni realiza pagos.** Todos los nombres, contratos, políticas, importes y decisiones de la demo son sintéticos. Una factura «autorizada» significa elegible en la simulación; no corresponde a una transferencia bancaria.
+## Iniciar
 
-## Instalación
-
-Requisitos: Node.js 22+, Corepack/Yarn 4.14.1 e Internet para instalar dependencias y obtener Inter durante el build inicial de `next/font`.
+Requiere Node.js 22+, Corepack/Yarn 4.14.1 e Internet para instalar Next.js y cargar Inter por `next/font/google`.
 
 ```bash
 corepack enable
@@ -14,126 +12,161 @@ yarn install
 yarn dev
 ```
 
-Abre `http://localhost:3000`.
+Visita `http://localhost:3000/auditoria` para la auditoría, `http://localhost:3000/aprobaciones` para supervisión humana o `http://localhost:3000/esta-ruta-no-existe` para comprobar el 404.
 
 ```bash
+yarn test:rules
+# Después de instalar dependencias:
 yarn lint
 yarn build
-yarn test:rules
 ```
 
-## Experiencia `/`
+## Rutas implementadas
 
-### 1. Secuencia cinematográfica (6 capítulos)
+| Ruta | Módulo |
+|---|---|
+| `/` | Dashboard cinematográfico, actividad, estadísticas y lote de pruebas |
+| `/politicas` | Límites por factura, autonomía, presupuesto y versiones |
+| `/beneficiarios` | Directorio de confianza, acuerdos y autorizaciones |
+| `/facturas` | Ingesta de PDF/imagen/correo/texto y extracción opcional con IA |
+| `/facturas/[id]` | Confirmación del documento, decisión, motivos y auditoría |
+| `/aprobaciones` | Nueva mesa de supervisión humana con motivos obligatorios |
+| `/auditoria` | Bitácora transversal, timeline, evidencias, filtros y exportación |
+| `app/not-found.tsx` | Página 404 cinematográfica, accesos rápidos y video con poster |
 
-- `metal-human.jpg` se muestra inmediatamente como poster y como fallback de accesibilidad.
-- `metal-human.mp4` se reproduce en bucle, silenciado y sin audio. **Es el video aportado por el usuario, optimizado para web** de aproximadamente 57 MB originales a ~1 MB H.264 1440px, manteniendo el nombre público.
-- Scroll-driven: zoom progresivo de cámara, desplazamiento sutil y seis composiciones tipográficas que se suceden dentro de la misma escena, más índices laterales para navegar por capítulos.
-- Navegación directa: **Entrar al dashboard**, **Descubrir el agente**, **Revisar aprobaciones**. No es obligatorio recorrer la historia para operar.
-- `prefers-reduced-motion`: poster sin video ni animaciones, manteniendo navegación y contenido.
-- IntersectionObserver pausa el video cuando sale de la vista.
+## Novedades v9 — Página global `not-found`
 
-### 2. Dashboard empresarial
+- Página 404 diseñada para Blinka con la estética cinematográfica aprobada: video `/metal-human.mp4`, respaldo `/metal-human.jpg`, verde lima, Inter global, tipografía editorial y fondo oscuro.
+- Rutas de salida accesibles sin JavaScript: dashboard, facturas, aprobaciones y auditoría. No se genera ninguna operación ni pago.
+- Implementación como Server Component en `app/not-found.tsx`; sin tiempo, render dinámico, estado cliente ni API. No se monta el `AppShell` de operaciones para mantener una composición 404 propia.
+- Estados de accesibilidad: `h1` único, navegación semántica, contraste, etiquetas, controles nativos y reducción de movimiento (oculta el video cuando `prefers-reduced-motion: reduce`).
+- Verificación recomendada: abrir `/ruta-inexistente` y ` /facturas/no-existe` (esta última depende del tratamiento particular del expediente) y confirmar visualmente el estado 404; comprobar en móvil, con vídeo desactivado y con preferencias de movimiento reducido.
 
-- Cuatro KPIs basados en los datos del cliente; se actualizan tras acciones.
-- Panel del agente y ratio de decisiones resueltas sin intervención.
-- Bandeja de aprobación humana, gráfico de decisiones y balance presupuestal ficticio.
-- Tabla navegable con búsqueda y filtros, panel de evidencias y reglas.
-- Aprobar / rechazar solicitudes en demo; el sistema revalida reglas duras antes de aprobar.
-- Procesamiento de un lote ficticio de tres facturas y exportación JSON de auditoría.
-- Atajo `/` para buscar facturas y navegación responsive.
+## Novedades v8 — `/auditoria` y bloqueo de prerender resuelto en código
 
-## Centro de políticas `/politicas` (v4)
+### Corrección del error `blocking-prerender-current-time-client`
 
-- El hero cinematográfico reutiliza el video original `metal-human.mp4` y el póster `metal-human.jpg`, con tratamiento de contraste y efecto visual discreto para no obstaculizar la operación.
-- Configura **límite de autonomía**, **límite absoluto por factura** y **presupuesto mensual** con validación de invariantes: `0 < autonomía ≤ límite absoluto ≤ presupuesto`.
-- Los **seis controles duros** permanecen activos: duplicados, proveedor, acuerdo, límite absoluto, presupuesto y ambigüedad documental.
-- Un simulador determinista permite probar 7 escenarios sintéticos con importe modificable y comparar **decisión activa vs. borrador** antes de publicar.
-- Se puede descartar un borrador, revisar las diferencias en una confirmación, publicar una nueva versión, consultar el historial y exportar JSON.
-- La política activa y hasta 15 eventos de modificación se guardan en **localStorage del navegador**. Los nuevos lotes y aprobaciones del dashboard `/` consultan la última versión local. Las facturas de muestra inicialmente procesadas no se reescriben retroactivamente.
-- Los controles no representan autorización real de pago; para producción se requiere backend, autenticación, transacciones y registro de auditoría no modificable desde el cliente.
+El componente `/aprobaciones` invocaba `assessHumanApproval()` durante render. Esta función llamaba `evaluateInvoiceSafely()`, que generaba `new Date().toISOString()`: Next 16 con `cacheComponents` lo considera una lectura temporal inestable en prerender.
 
-### Prueba del flujo entre las dos rutas
+- `src/lib/invoice-processing.ts` ahora expone `previewInvoiceDecision()` como función pura: no consulta tiempo, navegador ni efectos laterales. `assessHumanApproval()` usa esa función en `useMemo`.
+- `evaluateInvoiceSafely()` conserva el sello de tiempo únicamente al registrar una decisión mediante una acción explícita; también acepta una fecha ISO inyectable para pruebas.
+- `resolveInvoice()` conserva `evaluatedAt = reviewedAt` cuando una aprobación humana ejecuta la nueva evaluación.
+- La prueba `tests/audit-timeline.test.mjs` sustituye temporalmente el constructor de `Date` para asegurar que la previsualización no invoca `new Date()` sin argumentos.
 
-1. Accede a `/politicas` desde el icono del escudo de la navegación.
-2. Cambia el límite autónomo de 1.000 USD a 1.500 USD y comprueba la simulación con la factura de 2.400 USD.
-3. Pulsa **Revisar cambios → Publicar versión**.
-4. Regresa a `/` y ejecuta **Procesar lote demo**: el motor usa la política publicada en ese mismo navegador.
-5. Vuelve a `/politicas` y comprueba el historial de modificaciones.
+**No** se ha ejecutado un build completo ni verificado el prerender real de Next en este entorno por indisponibilidad del registro npm. Verificar con `yarn build` localmente.
 
-## Directorio de beneficiarios `/beneficiarios` (v5)
+### Auditoría transversal
 
-- Hero cinematográfico con `metal-human.mp4`, poster y tratamiento visual coherente con `/politicas`. Inter global desde `app/layout.tsx`.
-- KPIs derivados del directorio (total, autorizados, en revisión, bloqueados).
-- Buscador, filtros por estado y país, directorio tabulado accesible y ficha de beneficiario con el límite de su acuerdo.
-- Alta, edición y modificación de estados con confirmación humana, validación de campos y nombres duplicados.
-- Un beneficiario **nuevo siempre empieza en revisión** y no puede autorizarse automáticamente.
-- Cambios críticos en nombre, país, referencia de acuerdo o máximo por factura **revocan la autorización y exigen nueva revisión**.
-- No se almacenan cuentas bancarias reales, documentos de identidad ni comprobantes de pago.
-- Eventos con versión de registro `rN`, exportación JSON, estado y eventos en `localStorage` exclusivamente para demo.
-- El procesamiento de nuevos lotes en `/` y la aprobación humana en `/` revalidan beneficiarios contra el directorio local y toman el límite del acuerdo configurado. Una autorización previa mostrada en la demo no se reescribe retroactivamente.
-- **Seguridad:** el cotejo por nombre y el almacenamiento local solo ejemplifican la regla de beneficiarios permitidos; no verifican identidad, cuenta bancaria ni autorizan dinero real. En producción deben sustituirse por IDs robustos, permisos del servidor y auditoría append-only.
+- Hero cinematográfico con `/public/metal-human.mp4` y respaldo JPG, Inter global, grilla responsive y acceso directo al historial.
+- Una línea de tiempo compuesta de eventos **registrados** de facturas, evaluaciones, aprobaciones, políticas y beneficiarios; orden descendente.
+- Indicadores: eventos registrados, resoluciones humanas, versiones de políticas y cobertura de facturas con historial real.
+- Búsqueda por factura, proveedor, regla o responsable; filtro por categoría; carga incremental en lotes de 12.
+- Inspector de cada evento con motivo, actor, fecha, versión y snapshots de límites/beneficiario cuando están presentes; justificación humana para aprobaciones y rechazos; comparación antes/después para políticas; estado previo/nuevo para beneficiarios.
+- Acceso al expediente `/facturas/[id]` y exportación JSON/CSV del conjunto filtrado.
+- **No se inventan eventos retroactivos** para los 12 fixtures precargados: se etiquetan como **estado inicial sin historial** y se excluyen de la cobertura auditable. Para generar eventos observables, procesa el lote de prueba en `/facturas` o verifica una factura cargada.
+- `src/lib/audit-timeline.ts` implementa toda la composición, búsqueda y medición como funciones puras; `src/components/audit/audit-page.tsx` gestiona solo la presentación y el estado del navegador.
 
-### Prueba integral entre rutas
+### Prueba manual de integración
 
-1. Abre `/beneficiarios` y selecciona **Nexa Software**.
-2. Haz clic en **Bloquear** y confirma.
-3. Vuelve a `/` y ejecuta el **lote demo**. El caso de Nexa Software debe quedar bloqueado con `VENDOR_NOT_ALLOWED`.
-4. Regresa a `/beneficiarios`, selecciona Nexa Software y pulsa **Autorizar**.
-5. Recarga `/` y ejecuta de nuevo el lote: Nexa vuelve a ser elegible si cumple las demás políticas.
-6. Opcional: edita su acuerdo; cualquier cambio financiero provoca estado **En revisión** antes de admitir futuras autorizaciones.
+1. Abre `/aprobaciones` y confirma que aparece sin el error de `new Date()` reportado. Resuelve una solicitud elegible con motivo de al menos 12 caracteres.
+2. Navega a `/auditoria`, filtra por **Aprobaciones humanas** y selecciona el evento. Comprueba motivo, actor, instantánea de política y enlace al expediente.
+3. Publica un cambio permitido en `/politicas`; filtra **Versiones de políticas** y revisa el antes/después sin modificar el registro anterior.
+4. Bloquea un beneficiario de prueba en `/beneficiarios` y encuentra el evento en **Beneficiarios**.
+5. En `/facturas`, ejecuta el lote ficticio para registrar evaluaciones. Inspecciona el evento en `/auditoria` y exporta JSON/CSV filtrado.
+6. Valida mobile, reducción de movimiento, búsqueda sin resultados y navegación entre módulos.
 
-## Organización
+### Calidad y límites
+
+- **68/68 pruebas** con `yarn test:rules`; 45 archivos TypeScript/TSX analizados sintácticamente y 11 CSS parseados.
+- `localStorage` es editable, no es transaccional, no autentica actores, no está firmado y no constituye auditoría inmutable. Para producción, eventos append-only persistidos en backend, RBAC, idempotencia, control concurrente de presupuesto, marcas de tiempo confiables y firma/correlación de eventos.
+- Los actores, facturas y estados son datos sintéticos. Ningún estado autoriza una transferencia real.
+
+## Experiencia `/aprobaciones` (v7)
+
+### Diseño
+
+- Hero cinematográfico del humano metálico con `metal-human.mp4` optimizado, `metal-human.jpg` como respaldo, Inter global, verde lima y superficies oscuras.
+- Indicadores de pendientes, aptas para aprobación, correcciones requeridas y decisiones humanas.
+- Bandeja de solicitudes con búsqueda por proveedor, factura o regla; filtros; vencimientos; estados visuales.
+- Inspector contextual con importe, beneficiario, acuerdo, política vigente, regla original, reevaluación, controles y expediente.
+- Diálogo con justificación obligatoria, confirmación consciente y exportación JSON del historial local.
+- Accesibilidad: etiquetas, estados anunciados, navegación con teclado, Escape, foco contenido en el diálogo, visualización móvil y `prefers-reduced-motion`.
+
+### Reglas
+
+- **Autorizar:** solo cuando `assessHumanApproval()` confirma `APPROVAL_REQUIRED`, sin ninguna infracción obligatoria. Se reevalúa también en `resolveInvoice()` al confirmar, no solo al abrir el diálogo.
+- **Bloquear/rechazar:** una persona puede rechazar una solicitud pendiente con justificación. No puede usar la aprobación para ignorar duplicados, beneficiarios no autorizados, documentos no verificados, presupuestos insuficientes, moneda sin tipo de cambio o límites absolutos.
+- **Autorización auditada:** se guardan autor ficticio, fecha, motivo, versión/política e identificación/revisión del beneficiario. Si los datos cambiaron, el inspector informa que se aplicará la configuración vigente.
+- **Acciones centralizadas:** los controles directos del dashboard y del expediente remiten a `/aprobaciones?invoice=...`, que exige justificación.
+- **Persistencia:** estado de facturas y eventos en `localStorage` únicamente para pruebas de una sesión/navegador. Sin backend, roles, bloqueo transaccional ni integridad de auditoría de producción.
+
+### Prueba manual recomendada
+
+1. En `/aprobaciones` abre la factura de **Andes Cloud** (`BIL-2026-0891`). Debe aparecer como elegible por exceder el umbral autónomo sin superar los otros límites.
+2. Pulsa **Aprobar en sandbox** e intenta confirmar sin comentario: el botón debe permanecer inactivo. Escribe un motivo de al menos 12 caracteres, acepta la confirmación y autoriza.
+3. Comprueba que pasa a **Resueltas**, registra al revisor ficticio y muestra el comentario. Regresa a `/`: el estado debe ser autorizado.
+4. En `/beneficiarios`, bloquea a **Orbita Labs**; vuelve a `/aprobaciones` y selecciona su factura pendiente. La autorización debe quedar deshabilitada; el rechazo permanece disponible.
+5. Revisa las razones de bloqueo y exporta el expediente a JSON.
+6. Cambia en `/politicas` el límite absoluto por debajo del importe de una factura pendiente (respetando las validaciones de política); la reevaluación debe impedir aprobarla.
+
+## Estructura
 
 ```text
-30x-frontend/
-├── app/
-│   ├── layout.tsx                  # Inter desde next/font/google
-│   ├── page.tsx                    # / dashboard
-│   ├── politicas/page.tsx          # /politicas · centro de políticas
-│   ├── beneficiarios/page.tsx      # /beneficiarios · directorio y acuerdos
-│   └── globals.css                # importador de estilos modulares
-├── public/
-│   ├── metal-human.jpg            # poster original
-│   └── metal-human.mp4            # video optimizado para web
-├── src/
-│   ├── components/
-│   │   ├── experience/agent-stage.tsx  # scroll + cine + gestión video
-│   │   ├── layout/app-shell.tsx        # chrome de app y navegación
-│   │   ├── dashboard/                  # widgets y decisiones de la demo
-│   │   ├── policies/                   # editor, simulador, historial y UI
-│   │   ├── beneficiaries/              # directorio, ficha, formularios y confirmaciones
-│   │   └── ui/                         # iconos y badges
-│   ├── styles/
-│   │   ├── foundation.css          # tokens, tipografía, shell
-│   │   ├── chapter.css             # cinematografía y secuencias
-│   │   ├── operations.css          # paneles y tablas
-│   │   ├── drawer.css              # detalles y feedback
-│   │   ├── responsive.css          # tablet/mobile/reduced motion
-│   │   ├── policies.css            # diseño del Policy Center
-│   │   └── beneficiaries.css       # diseño de directorio, ficha y editor
-│   ├── lib/                        # mocks, motor de reglas, persistencia local y validación
-│   └── types/                      # dominio de pagos
-└── tests/                         # motor, políticas, reglas y ciclo del directorio
+app/
+  layout.tsx                  # Inter desde next/font/google
+  page.tsx                    # / dashboard
+  politicas/page.tsx
+  beneficiarios/page.tsx
+  facturas/page.tsx
+  facturas/[id]/page.tsx
+  aprobaciones/page.tsx
+  auditoria/page.tsx          # nueva ruta
+  api/invoices/extract/route.ts
+src/
+  components/
+    approvals/               # approval-hero, approvals-page, approval-confirmation
+    audit/                   # auditoría, timeline e inspector
+    dashboard/               # overview y widgets
+    invoices/                # ingesta y detalle
+    beneficiaries/           # directorio de confianza
+    policies/                # configuración y simulador
+    experience/              # escena cinematográfica
+    layout/                  # navegación compartida
+  lib/
+    approval-workflow.ts     # guard puro para permiso humano
+    audit-timeline.ts        # función pura para timeline multifuente
+    invoice-registry.ts      # transición + audit event local
+    invoice-processing.ts    # validaciones documentales y evaluación
+    decision-engine.ts       # reglas deterministas
+    beneficiary-registry.ts
+    policy-store.ts
+  styles/approvals.css
+  styles/audit.css           # CSS scoped para auditoría
+  types/
+public/
+  metal-human.jpg
+  metal-human.mp4
+  demo/                      # facturas ficticias
+
+tests/
+  audit-timeline.test.mjs
+  approval-workflow.test.mjs
+  ...                        # políticas, motor, beneficiarios, ingesta
 ```
 
-## Alcance técnico y seguridad
+## IA opcional para extracción
 
-- El motor de reglas sigue siendo **determinista** para los datos ficticios y se ejecuta **solo en el navegador**.
-- El diseño no incluye extracción IA desde PDF, API, autenticación, **persistencia en servidor** ni ejecución real de pagos. La vista debe conectarse a un backend antes de plantear producción.
-- Las decisiones humanas sobre facturas se simulan en memoria y se reinician al recargar `/`. Las **políticas publicadas sí se conservan en localStorage** para probar el flujo entre rutas.
-- Las aprobaciones por importe requieren revalidación. Una revisión humana ordinaria no evita duplicados, proveedores prohibidos, límites absolutos o falta de presupuesto.
-- **No utilizar esta aplicación en procesos de pago reales.**
+`cp .env.example .env.local` y configura `OPENAI_API_KEY` y `OPENAI_EXTRACTION_MODEL`. Sin clave, la app admite revisión manual de PDF/imagen y extracción heurística del texto de correos. La API de extracción necesita credenciales y documentos ficticios para probarse de extremo a extremo.
 
-## Identidad y referencia
+## Limitaciones y seguridad
 
-- Dirección artística basada en la narrativa visual cinematográfica de **GetLayers · Flora** (`https://www.getlayers.ai/templates?layer=flora`). Es **código y composición originales** adaptados al humano metálico aportado; no se incorporan fuentes ni escenas premium de GetLayers.
-- Colores oscuros y lima/verde inspirados en Blinka. Los HEX no se verificaron contra su hoja de estilos de producción. Consulta `BRAND_REVIEW.md`.
-- Inter en `app/layout.tsx`; títulos de acento expresivo usan serif editorial de sistema para la dirección cinematográfica.
+La simulación es de cliente. No hay pagos reales, autenticación, control de organizaciones ni base de datos. No cargues documentación financiera real. Para producción, las decisiones deben moverse al servidor, aplicar RBAC y reservas presupuestarias transaccionales, y escribirse en una auditoría inmutable. La revalidación cliente por sí sola no garantiza seguridad ante manipulación o concurrencia.
 
-## Validación en este entorno
+El estilo se inspira en **Blinka** y en la narrativa **Flora de GetLayers**; los tokens exactos del CSS oficial no se verificaron. Se reutilizan los recursos de humano metálico aportados por el usuario, sin assets premium ajenos.
 
-- 28/28 pruebas unitarias (8 del motor, 8 de políticas, 12 de beneficiarios incluyendo altas, autorizaciones y revocación por cambio crítico).
-- 26 archivos TS/TSX pasaron transpilación de sintaxis con TypeScript; estilos CSS analizados sin errores de parseo.
-- Se verificaron composición de hero desktop y mobile con HTML de referencia y el mismo CSS; **esto no sustituye el render de Next.js real**.
-- **Build y lint de Next.js pendientes:** Corepack no pudo descargar Yarn (DNS: `repo.yarnpkg.com` indisponible en este entorno). Ejecuta `yarn install && yarn lint && yarn build` en tu computadora.
+## Validación v8
+
+- 68/68 pruebas de reglas, flujo humano, regresión prerender y auditoría.
+- 45 archivos TS/TSX analizados sintácticamente sin errores.
+- 11 hojas CSS analizadas sin errores de parseo.
+- El build de Next.js necesita dependencias instaladas; no se ha afirmado una validación E2E en navegador de esta versión.

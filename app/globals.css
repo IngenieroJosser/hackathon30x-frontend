@@ -8,3 +8,11 @@
 @import "../src/styles/policies.css";
 
 @import "../src/styles/beneficiaries.css";
+
+@import "../src/styles/invoices.css";
+
+@import "../src/styles/approvals.css";
+
+@import "../src/styles/audit.css";
+
+@import "../src/styles/not-found.css";

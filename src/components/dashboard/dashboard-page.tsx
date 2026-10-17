@@ -10,10 +10,9 @@ import { BudgetCard } from './budget-card';
 import { ApprovalQueue } from './approval-queue';
 import { RecentInvoices } from './recent-invoices';
 import { InvoiceDetail } from './invoice-detail';
-import { DEMO_BATCH, DEMO_POLICY, INITIAL_INVOICES } from '@/lib/mock-data';
-import { evaluateDemoInvoice } from '@/lib/decision-engine';
+import { DEMO_POLICY, INITIAL_INVOICES } from '@/lib/mock-data';
+import { getInvoices, INVOICE_UPDATED_EVENT, hasDemoBatch, runDemoBatch } from '@/lib/invoice-registry';
 import { getDemoPolicy, POLICY_UPDATED_EVENT } from '@/lib/policy-store';
-import { getDemoBeneficiaries, invoiceWithBeneficiary } from '@/lib/beneficiary-registry';
 import type { PaymentPolicy } from '@/types/payments';
 import { integer, money } from '@/lib/format';
 import type { DecisionFilter, Invoice } from '@/types/payments';
@@ -33,6 +32,11 @@ export function DashboardPage() {
   const [filter,setFilter] = useState<DecisionFilter>('all');
   const [selectedId,setSelectedId] = useState<string|null>(null);
   const [demoRun,setDemoRun] = useState(false);
+  useEffect(()=>{
+    const refresh=()=>{setInvoices(getInvoices());setDemoRun(hasDemoBatch());};
+    refresh();window.addEventListener(INVOICE_UPDATED_EVENT,refresh);window.addEventListener('storage',refresh);
+    return()=>{window.removeEventListener(INVOICE_UPDATED_EVENT,refresh);window.removeEventListener('storage',refresh);};
+  },[]);
   const [toast,setToast] = useState<string|null>(null);
   const tableRef = useRef<HTMLElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -70,49 +74,13 @@ export function DashboardPage() {
 
   const runBatch = () => {
     if(demoRun) return;
-    let available = activePolicy.monthlyBudget-invoices.filter(x=>x.status==='authorized').reduce((sum,x)=>sum+x.amount,0);
-    const evaluated = DEMO_BATCH.map(item=>{
-      const checked=invoiceWithBeneficiary(item,getDemoBeneficiaries());
-      const result=evaluateDemoInvoice(checked,activePolicy,available);
-      if(result.status==='authorized') available-=item.amount;
-      return {...checked,...result,policyVersion:activePolicy.version};
-    });
-    setInvoices(current=>[...evaluated,...current]);
-    setDemoRun(true);
-    setToast('Lote procesado: 3 decisiones registradas con datos de prueba.');
+    try { const outcomes=runDemoBatch(); setToast(`Lote procesado: ${outcomes.length} decisiones ficticias registradas.`); }
+    catch(error){setToast(error instanceof Error?error.message:'No se pudo procesar el lote.');}
   };
-
-  const onApprove = (id:string) => {
-    const row=invoices.find(item=>item.id===id);
-    if(!row || row.status!=='pending') return;
-    const remaining=activePolicy.monthlyBudget-invoices.filter(x=>x.status==='authorized').reduce((sum,x)=>sum+x.amount,0);
-    const checked=invoiceWithBeneficiary(row,getDemoBeneficiaries());
-    const revalidated=evaluateDemoInvoice(checked,activePolicy,remaining);
-    // An ordinary approval cannot bypass any hard policy in this local demo.
-    if(revalidated.ruleCode!=='APPROVAL_REQUIRED') {
-      setToast('No se autorizó: la solicitud ya no cumple las políticas.');
-      return;
-    }
-    setInvoices(current=>current.map(item=>item.id===id?{
-      ...checked,status:'authorized' as const,ruleCode:'HUMAN_APPROVAL_GRANTED',
-      reason:'Un administrador autorizó la factura en la simulación tras volver a verificar las reglas.',
-      checks:[...revalidated.checks.filter(x=>!x.toLowerCase().includes('pendiente')),'Aprobación humana simulada por Admin Finance'],
-      reviewedBy:'Admin Finance · Demo',policyVersion:activePolicy.version,
-    }:item));
-    setSelectedId(null);
-    setToast('Autorización simulada registrada. No se realizó ningún pago.');
-  };
-  const onReject = (id:string) => {
-    setInvoices(current=>current.map(item=>item.id===id&&item.status==='pending'?{
-      ...item,status:'blocked' as const,ruleCode:'HUMAN_APPROVAL_REJECTED',
-      reason:'La persona revisora rechazó esta solicitud en el entorno de demostración.',
-      checks:[...item.checks,'Rechazo humano registrado'],reviewedBy:'Admin Finance · Demo',
-    }:item));
-    setSelectedId(null);
-    setToast('Rechazo registrado en el entorno demo.');
-  };
+  // All human decisions now go through /aprobaciones, which requires a review note.
+  const openHumanControl = (id:string) => { window.location.href = `/aprobaciones?invoice=${encodeURIComponent(id)}`; };
   const downloadAudit = () => {
-    const payload={generatedAt:new Date().toISOString(),environment:'synthetic-demo',paymentExecution:false,activePolicyAtExport:activePolicy,policyVersionOnEachDecision:true,fullPolicySnapshotPerDecision:false,decisions:invoices.map(({id,number,vendor,amount,currency,status,ruleCode,reason,checks,reviewedBy,policyVersion,beneficiaryRevision})=>({id,number,vendor,amount,currency,status,ruleCode,reason,checks,policyVersion:policyVersion??null,beneficiaryRevision:beneficiaryRevision??null,reviewedBy:reviewedBy??null}))};
+    const payload={generatedAt:new Date().toISOString(),environment:'synthetic-demo',paymentExecution:false,activePolicyAtExport:activePolicy,policyVersionOnEachDecision:true,fullPolicySnapshotPerDecision:false,decisions:invoices.map(({id,number,vendor,amount,currency,status,ruleCode,reason,checks,reviewedBy,reviewedAt,reviewNote,policyVersion,beneficiaryRevision})=>({id,number,vendor,amount,currency,status,ruleCode,reason,checks,policyVersion:policyVersion??null,beneficiaryRevision:beneficiaryRevision??null,reviewedBy:reviewedBy??null,reviewedAt:reviewedAt??null,reviewNote:reviewNote??null}))};
     const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob);
     const link=document.createElement('a');link.href=url;link.download='blinka-auditoria-demo.json';document.body.append(link);link.click();link.remove();
@@ -121,8 +89,8 @@ export function DashboardPage() {
   };
 
   const goToOperations = () => document.getElementById('operaciones')?.scrollIntoView({behavior:'smooth',block:'start'});
-  return <AppShell alerts={counts.pending} onPendingClick={()=>scrollToInvoices('pending')} onSearchClick={focusSearch}>
-    <AgentStage resolved={resolved} total={counts.total} pending={counts.pending} onEnter={goToOperations} onPending={()=>scrollToInvoices('pending')}/>
+  return <AppShell alerts={counts.pending} onPendingClick={()=>{window.location.href='/aprobaciones';}} onSearchClick={focusSearch}>
+    <AgentStage resolved={resolved} total={counts.total} pending={counts.pending} onEnter={goToOperations} onPending={()=>{window.location.href='/aprobaciones';}}/>
     <div className="dashboard-content" id="operaciones">
       <section className="operations-intro" aria-labelledby="operations-title">
         <div className="operations-title-block">
@@ -145,12 +113,12 @@ export function DashboardPage() {
           <div className="hero-left"><div className="hero-eyebrow"><i className="hero-online-dot"/> AUTONOMY ENGINE <span className="hero-eyebrow-sep">/</span> V1.3</div>
             <h2>El poder de decidir.<br/><em>La certeza de controlar.</em></h2>
             <p>Tu agente aplica las políticas de pago antes de cada autorización. Sin atajos. Sin cajas negras.</p>
-            <button className="hero-button" onClick={()=>scrollToInvoices('pending')} type="button">Revisar solicitudes <Icon name="arrowUp" size={17}/></button>
+            <button className="hero-button" onClick={()=>{window.location.href='/aprobaciones';}} type="button">Revisar solicitudes <Icon name="arrowUp" size={17}/></button>
             <div className="hero-policies"><span><Icon name="shield" size={14}/> {activePolicy.version}</span><span><Icon name="lock" size={14}/> Modo simulación</span></div>
           </div>
           <div className="hero-right"><div className="hero-ring" style={{background:`conic-gradient(from -90deg, var(--accent) 0 ${resolved}%, rgba(244,250,241,.09) ${resolved}% 100%)`}}><div className="ring-content"><span className="ring-legend">AUTONOMÍA</span><strong>{resolved}<span>%</span></strong><small>resueltas sin<br/>intervención</small></div></div><div className="hero-right-foot"><i/>{automaticallyResolved} de {counts.total} decisiones</div></div>
         </section>
-        <ApprovalQueue invoices={invoices} onSelect={invoice=>setSelectedId(invoice.id)} onViewAll={()=>scrollToInvoices('pending')}/>
+        <ApprovalQueue invoices={invoices} onSelect={invoice=>setSelectedId(invoice.id)} onViewAll={()=>{window.location.href='/aprobaciones';}}/>
       </div>
       <div className="section-heading"><div><div className="section-kicker"><i/> INTELLIGENCE <span>/</span> INSIGHTS 002</div><h2>Rendimiento y límites</h2><p>Actividad del agente y supervisión presupuestaria.</p></div><span className="period-tag"><Icon name="calendar" size={16}/> Últimos 7 días</span></div>
       <div className="analytics-grid"><DecisionChart invoices={invoices}/><BudgetCard invoices={invoices} policy={activePolicy}/></div>
@@ -158,7 +126,7 @@ export function DashboardPage() {
       <RecentInvoices invoices={invoices} filter={filter} onFilterChange={setFilter} onSelect={invoice=>setSelectedId(invoice.id)} tableRef={tableRef} searchRef={searchRef}/>
       <footer className="site-footer"><span>© 2026 BLINKA DECISION ENGINE / SANDBOX</span><span>CONCEPTO DE PRODUCTO POR ZYRA <span className="footer-divider">·</span> NO REAL PAYMENTS</span></footer>
     </div>
-    <InvoiceDetail invoice={selected} onClose={()=>setSelectedId(null)} onApprove={onApprove} onReject={onReject}/>
+    <InvoiceDetail invoice={selected} onClose={()=>setSelectedId(null)} onApprove={openHumanControl} onReject={openHumanControl}/>
     {toast&&<div className="toast" role="status"><Icon name="check" size={17}/><span>{toast}</span><button type="button" aria-label="Cerrar mensaje" onClick={()=>setToast(null)}><Icon name="close" size={15}/></button></div>}
   </AppShell>;
 }

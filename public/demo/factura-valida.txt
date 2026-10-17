@@ -1,0 +1,7 @@
+FACTURA: HCK-2026-441
+Proveedor: Nexa Software
+Fecha de emisión: 12/10/2026
+Fecha de vencimiento: 30/10/2026
+Moneda: USD
+Total: 620.00
+Descripción: Servicios de ingeniería de software - empresa ficticia Atlas Global Inc.

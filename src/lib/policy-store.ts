@@ -1,6 +1,6 @@
 import { DEMO_POLICY } from '@/lib/mock-data';
 import type { PaymentPolicy } from '@/types/payments';
-import { POLICY_FIELD_LABEL, validateDemoPolicy, type PolicyAmountKey, type PolicyValues } from '@/lib/policy-validation';
+import { validateDemoPolicy, type PolicyAmountKey, type PolicyValues } from '@/lib/policy-validation';
 
 export { POLICY_FIELD_LABEL, validateDemoPolicy } from '@/lib/policy-validation';
 export type { PolicyAmountKey, PolicyValues } from '@/lib/policy-validation';
