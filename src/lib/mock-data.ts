@@ -37,7 +37,7 @@ const seeded: Record<string, Pick<Invoice, 'status' | 'reason' | 'ruleCode' | 'c
   'inv-12': { status: 'authorized', ruleCode: 'ALL_POLICIES_PASSED', reason: 'Cumple las reglas de pago autónomo.', checks: ['Beneficiario permitido', 'Acuerdo verificado', 'Presupuesto suficiente'] },
 };
 
-export const INITIAL_INVOICES: Invoice[] = base.map((item) => ({ ...item, ...seeded[item.id] }));
+export const INITIAL_INVOICES: Invoice[] = base.map((item) => ({ ...item, ...seeded[item.id], policyVersion: DEMO_POLICY.version }));
 
 /** Lote nuevo; mantiene casos adversariales y no se procesa hasta pedirlo. */
 export const DEMO_BATCH: Invoice[] = [

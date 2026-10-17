@@ -1,6 +1,6 @@
 # Roadmap técnico — 30X / Blinka Decision Engine
 
-## Entregado: `/` (UI v2)
+## Entregado: `/` (UI v3) + `/politicas` (UI v4) + `/beneficiarios` (UI v5)
 
 - Dashboard responsive modular y coherente con el flujo Accounts Payable.
 - Fuente Inter cargada desde `app/layout.tsx`.
@@ -8,6 +8,10 @@
 - Datos de prueba tipados + motor determinista exclusivamente local.
 - Tabla filtrable, panel de auditoría, notificaciones, aprobaciones simuladas, descarga JSON, lote de ejemplo.
 - Pruebas unitarias para las reglas más sensibles del prototipo.
+- `/politicas`: editor con reglas innegociables, simulador determinista, revisión de cambios, versionado demo e historial local.
+- Navegación bidireccional y política activa disponible para nuevos lotes del dashboard.
+- `/beneficiarios`: directorio filtrable, acuerdos, ficha, estados autorizados/en revisión/bloqueados, confirmación de cambios, revocación por actualización crítica, historial y exportación local.
+- Las nuevas evaluaciones de `/` consultan beneficiarios y acuerdos del directorio antes de autorizar.
 
 ## Pantallas que exige el reto
 
@@ -16,8 +20,8 @@
 | `/` | Visión general, resultados y KPI | Entregada |
 | `/facturas` | Ingesta y cola de procesamiento | P0 |
 | `/facturas/[id]` | Extracción, validaciones, decisión y evidencia | P0 |
-| `/politicas` | Reglas, presupuestos y límites configurables | P0 |
-| `/beneficiarios` | Lista autorizada y acuerdos | P0 |
+| `/politicas` | Reglas, presupuestos y límites configurables | Entregada (frontend demo) |
+| `/beneficiarios` | Lista autorizada y acuerdos | Entregada (frontend demo) |
 | `/aprobaciones` | Resolución humana y control de permisos | P0 |
 | `/auditoria` | Historial inmutable y exportación | P0 |
 

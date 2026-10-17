@@ -4,27 +4,28 @@ import { useState, type ReactNode } from 'react';
 import { Icon } from '@/components/ui/icon';
 
 type NavIcon='grid'|'file'|'users'|'wallet'|'shield'|'audit'|'chart';
-const sections:{title:string;items:{title:string;icon:NavIcon;anchor?:string}[]}[]=[
+const sections:{title:string;items:{title:string;icon:NavIcon;anchor?:string;href?:string}[]}[]=[
   {title:'WORKSPACE',items:[
     {title:'Inicio',icon:'grid',anchor:'inicio'},
     {title:'Operaciones',icon:'chart',anchor:'operaciones'},
     {title:'Facturas',icon:'file',anchor:'facturas'},
     {title:'Aprobaciones',icon:'users',anchor:'approvals'},
+    {title:'Políticas',icon:'shield',href:'/politicas'},
+    {title:'Beneficiarios',icon:'wallet',href:'/beneficiarios'},
   ]},
   {title:'PRÓXIMAMENTE',items:[
-    {title:'Beneficiarios',icon:'wallet'},
-    {title:'Políticas',icon:'shield'},
     {title:'Auditoría',icon:'audit'},
   ]},
 ];
 
-export function AppShell({children,alerts,onPendingClick,onSearchClick}:{
-  children:ReactNode;alerts:number;onPendingClick:()=>void;onSearchClick:()=>void;
+export function AppShell({children,alerts,onPendingClick,onSearchClick,currentPage='dashboard'}:{
+  children:ReactNode;alerts:number;onPendingClick:()=>void;onSearchClick:()=>void;currentPage?:'dashboard'|'policies'|'beneficiaries';
 }){
   const [menuOpen,setMenuOpen]=useState(false);
   const [notificationsOpen,setNotificationsOpen]=useState(false);
   const move=(anchor:string)=>{
     setMenuOpen(false);setNotificationsOpen(false);
+    if (currentPage !== 'dashboard') { window.location.href = anchor === 'inicio' ? '/' : `/#${anchor}`;return;}
     if(anchor==='approvals'){onPendingClick();return;}
     if(anchor==='inicio'){window.scrollTo({top:0,behavior:'smooth'});return;}
     document.getElementById(anchor)?.scrollIntoView({behavior:'smooth',block:'start'});
@@ -33,7 +34,7 @@ export function AppShell({children,alerts,onPendingClick,onSearchClick}:{
     {menuOpen&&<button className="mobile-scrim" type="button" aria-label="Cerrar menú" onClick={()=>setMenuOpen(false)}/>}
     <header className="topbar">
       <a href="/" className="brand-logo" aria-label="Blinka Decision Engine, inicio"><span className="brand-mark" aria-hidden="true"><span/><span/></span><span className="brand-wordmark">blinka<span className="brand-dot">.</span></span><span className="brand-divider"/><span className="brand-product">DECISION ENGINE</span></a>
-      <div className="topbar-center"><span className="header-slash">/</span><span>ATLAS GLOBAL INC.</span><span className="header-slash">/</span><span className="header-current">OVERVIEW</span></div>
+      <div className="topbar-center"><span className="header-slash">/</span><span>ATLAS GLOBAL INC.</span><span className="header-slash">/</span><span className="header-current">{currentPage === 'policies' ? 'POLICY CENTER' : currentPage === 'beneficiaries' ? 'TRUST REGISTRY' : 'OVERVIEW'}</span></div>
       <div className="topbar-right">
         <span className="header-sandbox"><i/> SANDBOX MODE</span>
         <button type="button" className="topbar-tool" onClick={onSearchClick} aria-label="Buscar factura" title="Buscar factura"><Icon name="search" size={18}/></button>
@@ -48,7 +49,12 @@ export function AppShell({children,alerts,onPendingClick,onSearchClick}:{
       <nav className="sidebar-navigation">
         {sections.map((group,i)=><div className="nav-group" key={group.title}>
           <span className="nav-heading">{i===0?'01':'02'}</span>
-          {group.items.map(item=><button key={item.title} type="button" className={`nav-item ${item.anchor?'':'nav-disabled'}`} title={item.anchor?item.title:`${item.title} · Disponible próximamente`} aria-label={item.title} disabled={!item.anchor} onClick={()=>item.anchor&&move(item.anchor)}><Icon name={item.icon} size={19}/><span className="nav-tooltip">{item.title}</span></button>)}
+          {group.items.map(item=>{
+            const active = item.href === '/politicas' ? currentPage === 'policies' : item.href === '/beneficiarios' ? currentPage === 'beneficiaries' : item.anchor === 'inicio' && currentPage === 'dashboard';
+            const classes = `nav-item ${!item.anchor&&!item.href?'nav-disabled':''} ${active?'nav-active':''}`;
+            const content = <><Icon name={item.icon} size={19}/><span className="nav-tooltip">{item.title}</span></>;
+            return item.href ? <a href={item.href} key={item.title} className={classes} aria-label={item.title} aria-current={active?'page':undefined} title={item.title} onClick={()=>setMenuOpen(false)}>{content}</a> : <button key={item.title} type="button" className={classes} title={item.anchor?item.title:`${item.title} · Disponible próximamente`} aria-label={item.title} aria-current={active?'page':undefined} disabled={!item.anchor} onClick={()=>item.anchor&&move(item.anchor)}>{content}</button>;
+          })}
         </div>)}
       </nav>
       <div className="sidebar-bottom"><span className="rail-status"><i/>LIVE</span><button type="button" className="rail-help" title="Ir a operaciones" aria-label="Ir a operaciones" onClick={()=>move('operaciones')}><Icon name="arrowDown" size={18}/></button></div>

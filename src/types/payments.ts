@@ -24,6 +24,8 @@ export type Invoice = {
   duplicateOf?: string;
   agreementLimit?: number;
   reviewedBy?: string;
+  beneficiaryRevision?: string; // referencia ficticia del proveedor al decidir
+  policyVersion?: string; // versión asociada a la evaluación o resolución ficticia
 };
 
 export type PaymentPolicy = {
