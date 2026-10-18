@@ -170,3 +170,30 @@ El estilo se inspira en **Blinka** y en la narrativa **Flora de GetLayers**; los
 - 45 archivos TS/TSX analizados sintácticamente sin errores.
 - 11 hojas CSS analizadas sin errores de parseo.
 - El build de Next.js necesita dependencias instaladas; no se ha afirmado una validación E2E en navegador de esta versión.
+
+## Corrección de prerender /facturas/[id] (v10)
+
+Con Next.js 16.4.2, `cacheComponents: true` y `partialPrefetching: true`,
+`params` de una ruta dinámica sin `generateStaticParams` es un dato de
+solicitud. Esperarlo directamente en `Page` provoca `blocking-prerender-dynamic`
+durante `next build`.
+
+En `app/facturas/[id]/page.tsx`, `Page` ahora devuelve un límite de
+`<Suspense>` con un fallback visual estático; un hijo asíncrono
+`InvoiceCaseContent` espera `params` dentro de ese límite y pasa `id` al
+componente de expediente existente. No fue necesario desactivar Cache Components
+ni usar `instant = false`.
+
+**Validación recomendada:**
+
+```bash
+corepack enable
+yarn install
+yarn test:rules
+yarn build
+```
+
+Luego verifica `/facturas/<id-valido>` navegando desde el listado, tanto en
+`yarn dev` como en `yarn start` tras compilar. Las pruebas de estructura
+`tests/invoice-route-prerender.test.mjs` previenen regresiones, pero no
+sustituyen una compilación real de Next.js.
