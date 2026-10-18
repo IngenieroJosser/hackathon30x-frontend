@@ -1,0 +1,314 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+enum UserRole {
+  ADMIN
+  APPROVER
+  AUDITOR
+}
+
+enum VendorStatus {
+  AUTHORIZED
+  REVIEW
+  BLOCKED
+}
+
+enum InvoiceSource {
+  PDF
+  IMAGE
+  EMAIL
+  TEXT
+}
+
+enum InvoiceStatus {
+  RECEIVED
+  NEEDS_VERIFICATION
+  READY
+  AUTHORIZED
+  BLOCKED
+  ESCALATED
+  REJECTED
+}
+
+enum ExtractionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum DecisionOutcome {
+  AUTHORIZED
+  BLOCKED
+  ESCALATED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum BudgetEntryType {
+  RESERVE
+  RELEASE
+  CONSUME
+}
+
+model Organization {
+  id              String           @id @default(uuid()) @db.Uuid
+  slug            String           @unique @db.VarChar(80)
+  name            String           @db.VarChar(160)
+  baseCurrency    String           @default("USD") @db.VarChar(3)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  users           AppUser[]
+  vendors         Vendor[]
+  agreements      VendorAgreement[]
+  policies        PaymentPolicy[]
+  budgets         BudgetPeriod[]
+  invoices        Invoice[]
+  auditEvents     AuditEvent[]
+}
+
+model AppUser {
+  id              String            @id @default(uuid()) @db.Uuid
+  organizationId  String            @db.Uuid
+  email           String            @db.VarChar(255)
+  displayName     String            @db.VarChar(120)
+  role            UserRole          @default(AUDITOR)
+  passwordHash    String?           @db.VarChar(255)
+  isActive        Boolean           @default(true)
+  failedAttempts  Int               @default(0)
+  lockedUntil     DateTime?
+  sessions        AuthSession[]
+  createdAt       DateTime          @default(now())
+  organization    Organization      @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  resolvedApprovals ApprovalRequest[] @relation("ApprovalReviewer")
+  auditEvents     AuditEvent[]
+  @@unique([organizationId, email])
+  @@index([organizationId, role])
+}
+
+model AuthSession {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @db.Uuid
+  tokenHash   String    @unique @db.VarChar(64)
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  user        AppUser   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, expiresAt])
+  @@index([expiresAt])
+}
+
+model Vendor {
+  id              String            @id @default(uuid()) @db.Uuid
+  organizationId  String            @db.Uuid
+  name            String            @db.VarChar(160)
+  normalizedName  String            @db.VarChar(160)
+  country         String            @db.VarChar(80)
+  category        String            @default("") @db.VarChar(100)
+  contactEmail    String?           @db.VarChar(255)
+  status          VendorStatus      @default(REVIEW)
+  revision        Int               @default(1)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  organization    Organization      @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  agreements      VendorAgreement[]
+  invoices        Invoice[]
+  @@unique([organizationId, normalizedName])
+  @@index([organizationId, status])
+}
+
+model VendorAgreement {
+  id              String       @id @default(uuid()) @db.Uuid
+  organizationId  String       @db.Uuid
+  vendorId        String       @db.Uuid
+  reference       String       @db.VarChar(80)
+  amountLimit     Decimal      @db.Decimal(18, 2)
+  currency        String       @default("USD") @db.VarChar(3)
+  version         Int          @default(1)
+  validFrom       DateTime?    @db.Date
+  validUntil      DateTime?    @db.Date
+  createdAt       DateTime     @default(now())
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  vendor          Vendor       @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+  invoices        Invoice[]
+  @@unique([organizationId, reference, version])
+  @@index([vendorId, createdAt])
+}
+
+model PaymentPolicy {
+  id              String       @id @default(uuid()) @db.Uuid
+  organizationId  String       @db.Uuid
+  version         Int
+  isActive        Boolean      @default(false)
+  autonomousLimit Decimal      @db.Decimal(18, 2)
+  hardLimit       Decimal      @db.Decimal(18, 2)
+  monthlyBudget   Decimal      @db.Decimal(18, 2)
+  currency        String       @default("USD") @db.VarChar(3)
+  rules           Json         @default("{}")
+  createdAt       DateTime     @default(now())
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  decisions       PaymentDecision[]
+  @@unique([organizationId, version])
+  @@index([organizationId, isActive])
+}
+
+model BudgetPeriod {
+  id              String          @id @default(uuid()) @db.Uuid
+  organizationId  String          @db.Uuid
+  periodStart     DateTime        @db.Date
+  periodEnd       DateTime        @db.Date
+  currency        String          @default("USD") @db.VarChar(3)
+  allocation      Decimal         @db.Decimal(18, 2)
+  reserved        Decimal         @default(0) @db.Decimal(18, 2)
+  consumed        Decimal         @default(0) @db.Decimal(18, 2)
+  version         Int             @default(1)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  entries         BudgetEntry[]
+  @@unique([organizationId, periodStart, currency])
+}
+
+model Invoice {
+  id              String             @id @default(uuid()) @db.Uuid
+  organizationId  String             @db.Uuid
+  vendorId        String?            @db.Uuid
+  agreementId     String?            @db.Uuid
+  externalNumber  String?            @db.VarChar(80)
+  vendorName      String?            @db.VarChar(160)
+  amount          Decimal?           @db.Decimal(18, 2)
+  currency        String?            @db.VarChar(3)
+  issueDate       DateTime?          @db.Date
+  dueDate         DateTime?          @db.Date
+  description     String?            @db.VarChar(500)
+  source          InvoiceSource      @default(TEXT)
+  status          InvoiceStatus      @default(RECEIVED)
+  idempotencyKey  String?            @db.VarChar(120)
+  verifiedAt      DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  vendor          Vendor?            @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+  agreement       VendorAgreement?   @relation(fields: [agreementId], references: [id], onDelete: Restrict)
+  document        InvoiceDocument?
+  extractions     InvoiceExtraction[]
+  decisions       PaymentDecision[]
+  approvals       ApprovalRequest[]
+  budgetEntries   BudgetEntry[]
+  auditEvents     AuditEvent[]
+  @@unique([organizationId, idempotencyKey])
+  // NO poner unique en (beneficiario, número): hay que registrar duplicados para bloquearlos.
+  @@index([organizationId, vendorName, externalNumber])
+  @@index([organizationId, status, createdAt])
+}
+
+model InvoiceDocument {
+  id              String          @id @default(uuid()) @db.Uuid
+  invoiceId       String          @unique @db.Uuid
+  fileName        String          @db.VarChar(255)
+  mimeType        String          @db.VarChar(100)
+  bytes           Int
+  sha256          String          @db.VarChar(64)
+  storageKey      String?         @db.VarChar(512)
+  createdAt       DateTime        @default(now())
+  invoice         Invoice         @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  @@index([sha256])
+}
+
+model InvoiceExtraction {
+  id              String           @id @default(uuid()) @db.Uuid
+  invoiceId       String           @db.Uuid
+  provider        String           @db.VarChar(40)
+  modelName       String?          @db.VarChar(100)
+  method          String           @db.VarChar(40)
+  status          ExtractionStatus @default(PENDING)
+  payload         Json
+  evidence        Json?
+  warnings        Json?
+  createdAt       DateTime         @default(now())
+  invoice         Invoice          @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  @@index([invoiceId, createdAt])
+}
+
+model PaymentDecision {
+  id                  String          @id @default(uuid()) @db.Uuid
+  invoiceId           String          @db.Uuid
+  policyId            String?         @db.Uuid
+  revision            Int             @default(1)
+  outcome             DecisionOutcome
+  ruleCode            String          @db.VarChar(100)
+  reason              String          @db.Text
+  checks              Json
+  policySnapshot      Json
+  beneficiarySnapshot Json?
+  inputSnapshot       Json
+  evaluatedAt         DateTime        @default(now())
+  invoice             Invoice         @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  policy              PaymentPolicy?  @relation(fields: [policyId], references: [id], onDelete: Restrict)
+  approvals           ApprovalRequest[]
+  @@unique([invoiceId, revision])
+  @@index([invoiceId, evaluatedAt])
+}
+
+model ApprovalRequest {
+  id              String          @id @default(uuid()) @db.Uuid
+  invoiceId       String          @db.Uuid
+  decisionId      String?         @db.Uuid
+  reviewerId      String?         @db.Uuid
+  status          ApprovalStatus  @default(PENDING)
+  justification   String?         @db.Text
+  requestedAt     DateTime        @default(now())
+  resolvedAt      DateTime?
+  invoice         Invoice         @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  decision        PaymentDecision? @relation(fields: [decisionId], references: [id], onDelete: Restrict)
+  reviewer        AppUser?         @relation("ApprovalReviewer", fields: [reviewerId], references: [id], onDelete: Restrict)
+  @@index([invoiceId, status])
+}
+
+model BudgetEntry {
+  id              String          @id @default(uuid()) @db.Uuid
+  budgetPeriodId  String          @db.Uuid
+  invoiceId       String?         @db.Uuid
+  type            BudgetEntryType
+  amount          Decimal         @db.Decimal(18, 2)
+  reason          String          @db.VarChar(255)
+  createdAt       DateTime        @default(now())
+  budgetPeriod    BudgetPeriod    @relation(fields: [budgetPeriodId], references: [id], onDelete: Restrict)
+  invoice         Invoice?        @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  @@index([budgetPeriodId, createdAt])
+}
+
+model AuditEvent {
+  id              String          @id @default(uuid()) @db.Uuid
+  organizationId  String          @db.Uuid
+  invoiceId       String?         @db.Uuid
+  actorId         String?         @db.Uuid
+  entityType      String          @db.VarChar(70)
+  entityId        String          @db.VarChar(120)
+  action          String          @db.VarChar(80)
+  data            Json
+  correlationId   String?         @db.VarChar(120)
+  occurredAt      DateTime        @default(now())
+  organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  invoice         Invoice?        @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  actor           AppUser?        @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  @@index([organizationId, occurredAt])
+  @@index([invoiceId, occurredAt])
+  @@index([entityType, entityId])
+}

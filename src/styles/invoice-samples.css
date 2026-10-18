@@ -1,0 +1,20 @@
+.iv-samples{margin:46px 0 58px;padding:28px;border:1px solid rgba(164,202,157,.2);background:linear-gradient(147deg,rgba(20,41,36,.92),rgba(10,18,17,.96));border-radius:20px}
+.iv-samples-heading{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:22px}
+.iv-samples-heading h2{font-size:clamp(25px,3vw,37px);letter-spacing:-.045em;color:#fff;margin:8px 0}
+.iv-samples-heading h2 span{color:#b8e55d}
+.iv-samples-heading p{color:#afc3bb;max-width:670px;font-size:13px;line-height:1.65}
+.iv-samples-manifest{color:#b8e55d;text-decoration:none;font-size:12px;border:1px solid rgba(174,221,102,.35);padding:11px 14px;border-radius:12px;white-space:nowrap}
+.iv-samples-manifest:hover,.iv-sample-footer a:hover{background:rgba(186,226,114,.1)}
+.iv-samples-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.iv-sample-card{padding:18px;display:flex;flex-direction:column;min-height:211px;background:rgba(255,255,255,.035);border:1px solid rgba(210,232,215,.12);border-radius:13px}
+.iv-sample-meta{display:flex;justify-content:space-between;font-size:10px;color:#b8e55d;letter-spacing:.09em}
+.iv-sample-meta span+span{color:#8a9b92}
+.iv-sample-card h3{color:#f0f8ef;font-size:17px;letter-spacing:-.025em;margin:12px 0 2px}
+.iv-sample-vendor{font-size:11px;color:#b6c9bc;margin:0 0 10px}
+.iv-sample-description{font-size:11px;color:#93a69d;line-height:1.5;flex:1}
+.iv-sample-footer{display:flex;gap:9px;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid rgba(200,221,203,.13)}
+.iv-sample-footer span{font-size:10px;line-height:1.4;max-width:66%;color:#bcd0c2}
+.iv-sample-footer a{font-size:11px;color:#c8f16f;text-decoration:none;padding:8px;border-radius:8px;white-space:nowrap;border:1px solid rgba(200,241,111,.24)}
+.iv-samples-notice{margin-top:18px;color:#8da69b;font-size:11px;line-height:1.6}
+@media(max-width:1050px){.iv-samples-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.iv-samples{padding:19px;margin:28px 0 36px}.iv-samples-heading{align-items:start;flex-direction:column}.iv-samples-grid{grid-template-columns:1fr}.iv-sample-card{min-height:185px}}

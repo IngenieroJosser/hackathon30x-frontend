@@ -10,9 +10,22 @@
 @import "../src/styles/beneficiaries.css";
 
 @import "../src/styles/invoices.css";
+@import "../src/styles/invoice-samples.css";
 
 @import "../src/styles/approvals.css";
 
 @import "../src/styles/audit.css";
 
 @import "../src/styles/not-found.css";
+
+@import "../src/styles/workspace.css";
+
+/* User identity and role context: security enforced in API, not via CSS. */
+.ws-role-badge{font:500 10px/1.4 var(--font-inter),sans-serif;letter-spacing:.03em;color:#cce7d5;padding:7px 10px;border:1px solid rgba(144,240,165,.21);border-radius:20px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ws-logout{background:transparent;color:#dce9dd;border:1px solid rgba(169,220,176,.28);padding:7px 12px;border-radius:12px;font-size:12px;cursor:pointer}
+.ws-logout:hover{border-color:#b4ffae;color:white}
+.ws-role-info{border:1px solid rgba(153,215,159,.22);border-radius:14px;padding:13px 16px;margin:10px 0 22px;color:#c4d0c7;font-size:12px;background:rgba(10,43,29,.43)}
+.ws-role-info strong{color:#ddffb0}
+.ws-auth-panel input[type=email],.ws-auth-panel input[type=password]{display:block;width:100%;min-height:44px;margin-top:6px}
+.ws-auth-panel label{display:block;margin-top:16px}
+@media(max-width:800px){.ws-role-badge{max-width:120px}.ws-logout{padding:6px 8px}}

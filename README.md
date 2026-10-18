@@ -1,3 +1,13 @@
+> **Actualización v13:** autenticación individual, RBAC, auditoría y migración incremental. Consulta [SEGURIDAD_Y_AUDITORIA_V13.md](./SEGURIDAD_Y_AUDITORIA_V13.md). La información sobre tokens compartidos en documentos v12 es histórica y ya no aplica.
+
+# Blinka Decision Engine — v12 (Neon + OpenAI)
+
+**Inicio rápido y contratos de integración:** [`BACKEND_INTEGRATION_V12.md`](./BACKEND_INTEGRATION_V12.md).
+
+Todas las rutas funcionales del frontend usan PostgreSQL como fuente de verdad mediante las APIs protegidas. El producto es un sandbox con documentos sintéticos y **no ejecuta transferencias**.
+
+---
+
 # Blinka Decision Engine · Cinematic v9
 
 **Concepto de producto ZYRA** para la hackathon 30X: un agente que interpreta facturas y decide autorizar en simulación, bloquear o escalar conforme a reglas configurables. No es un producto oficial de Blinka. **Todos los datos son sintéticos y nunca se mueve dinero.**
@@ -197,3 +207,7 @@ Luego verifica `/facturas/<id-valido>` navegando desde el listado, tanto en
 `yarn dev` como en `yarn start` tras compilar. Las pruebas de estructura
 `tests/invoice-route-prerender.test.mjs` previenen regresiones, pero no
 sustituyen una compilación real de Next.js.
+
+## Neon + Prisma — Backend Foundation
+
+Esta versión agrega 14 facturas ficticias en `/facturas` y la base de persistencia en Neon mediante API protegida por token de sandbox. Lee **[DATABASE_SETUP.md](DATABASE_SETUP.md)** para instalar Prisma 7, configurar `.env`, crear/aplicar la migración en tu base de Neon y comprobar registro/consulta de facturas sin localStorage. No se ejecutaron migraciones en Neon desde este ZIP y el frontend anterior continúa con su estado de demo mientras se migra.

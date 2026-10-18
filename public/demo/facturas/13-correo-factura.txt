@@ -1,0 +1,10 @@
+Asunto: Factura NX-2026-050 - solicitud ficticia
+Proveedor: Nexa Software
+Factura: NX-2026-050
+Fecha de emision: 2026-10-17
+Vencimiento: 2026-11-01
+Moneda: USD
+Concepto: Mantenimiento y soporte
+Total: 540.00
+
+DOCUMENTO SIMULADO - NO VALIDO PARA PAGOS.

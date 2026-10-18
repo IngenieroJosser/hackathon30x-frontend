@@ -1,0 +1,9 @@
+Asunto: Factura AR-2026-006 - solicitud ficticia
+Proveedor: Atlas Research
+Factura: AR-2026-006
+Fecha de emision: 2026-10-16
+Vencimiento: 2026-10-29
+Concepto: Investigacion de mercado
+Total: 900.00
+
+DOCUMENTO SIMULADO - NO VALIDO PARA PAGOS.

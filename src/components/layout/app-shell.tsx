@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from 'react';
 import { Icon } from '@/components/ui/icon';
+import { useSession } from '@/components/workspace/access-gate';
 
 type NavIcon='grid'|'file'|'users'|'wallet'|'shield'|'audit'|'chart';
 const sections:{title:string;items:{title:string;icon:NavIcon;anchor?:string;href?:string}[]}[]=[
@@ -19,6 +20,7 @@ const sections:{title:string;items:{title:string;icon:NavIcon;anchor?:string;hre
 export function AppShell({children,alerts,onPendingClick,onSearchClick,currentPage='dashboard'}:{
   children:ReactNode;alerts:number;onPendingClick:()=>void;onSearchClick:()=>void;currentPage?:'dashboard'|'policies'|'beneficiaries'|'invoices'|'invoice-detail'|'approvals'|'audit';
 }){
+  const session=useSession();
   const [menuOpen,setMenuOpen]=useState(false);
   const [notificationsOpen,setNotificationsOpen]=useState(false);
   const move=(anchor:string)=>{
@@ -39,7 +41,8 @@ export function AppShell({children,alerts,onPendingClick,onSearchClick,currentPa
         <div className="notification-wrap"><button type="button" className="topbar-tool notification-button" onClick={()=>setNotificationsOpen(v=>!v)} aria-expanded={notificationsOpen} aria-label={`Notificaciones: ${alerts} pendientes`}><Icon name="bell" size={18}/>{alerts>0&&<span className="notification-count"/>}</button>
           {notificationsOpen&&<div className="notification-menu"><strong>Solicitudes que esperan aprobación</strong><p>{alerts} {alerts===1?'factura necesita':'facturas necesitan'} revisión humana.</p><button type="button" onClick={()=>{setNotificationsOpen(false);onPendingClick();}}>Revisar solicitudes <Icon name="arrowUp" size={15}/></button></div>}
         </div>
-        <span className="header-user" title="Administrador financiero · Demo">AF</span>
+        <span className="ws-role-badge" title={session?.user.email}>{session?.user.role??'SIN SESIÓN'} · {session?.user.displayName}</span>
+        <button type="button" className="ws-logout" title="Cerrar sesión" onClick={()=>void session?.signOut()}>Salir</button>
         <button type="button" className="topbar-tool menu-toggle" onClick={()=>setMenuOpen(v=>!v)} aria-expanded={menuOpen} aria-label={menuOpen?'Cerrar navegación':'Abrir navegación'}><Icon name={menuOpen?'close':'menu'} size={20}/></button>
       </div>
     </header>

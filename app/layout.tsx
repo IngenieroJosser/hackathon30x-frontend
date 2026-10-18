@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import { AccessGate } from '@/components/workspace/access-gate';
 
 /** One font for the entire app. next/font self-hosts its output at build time. */
 const inter = Inter({
@@ -17,5 +18,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  return <html lang="es"><body className={inter.variable}>{children}</body></html>;
+  return <html lang="es"><body className={inter.variable}><AccessGate>{children}</AccessGate></body></html>;
 }

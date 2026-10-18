@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import { InvoiceCasePage } from '@/components/invoices/invoice-case-page';
+import { WorkspaceScreen } from '@/components/workspace/workspace-screen';
 
 export const metadata: Metadata = {
   title: 'Detalle de factura | Blinka Decision Engine',
@@ -18,7 +18,7 @@ type InvoiceRouteProps = {
  */
 async function InvoiceCaseContent({ params }: InvoiceRouteProps) {
   const { id } = await params;
-  return <InvoiceCasePage invoiceId={id} />;
+  return <WorkspaceScreen page="invoice-detail" invoiceId={id} />;
 }
 
 /**
