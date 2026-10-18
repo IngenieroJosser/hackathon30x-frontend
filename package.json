@@ -5,16 +5,24 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
+    "vercel-build": "yarn build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "prisma generate && tsc --noEmit",
+    "check": "yarn lint && yarn test:rules && yarn typecheck",
     "test:rules": "node --import ./tests/register-alias.mjs --experimental-strip-types --test tests/*.test.mjs",
+    "test:smoke:auth": "bash scripts/smoke-auth.sh",
+    "test:smoke:integration": "bash scripts/smoke-integration.sh",
+    "test:smoke:neon": "bash scripts/smoke-neon.sh",
     "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev --name init_blinka",
+    "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
     "db:status": "prisma migrate status",
-    "auth:bootstrap": "tsx scripts/bootstrap-auth.ts"
+    "db:setup": "yarn db:generate && yarn db:deploy && yarn db:seed",
+    "auth:bootstrap": "tsx scripts/bootstrap-auth.ts",
+    "demo:setup": "yarn db:setup && yarn auth:bootstrap"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.0",
