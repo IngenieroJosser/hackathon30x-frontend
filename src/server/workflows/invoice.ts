@@ -21,7 +21,7 @@ export async function registerIntake({draft,source,file,rawText}:IntakeInput,act
  });
  return {id:stored.id,number:stored.externalNumber,verified:false,persisted:true};
 }
-export async function verifyInvoice(id:string,fields:{number:string;vendor:string;amount:string;currency:string;dueDate:string;issueDate?:string;description?:string},actorId:string){
+export async function verifyInvoice(id:string,fields:{number:string;vendor:string;amount:string;currency:string;dueDate:string;issueDate?:string;description?:string},actorId:string, certification?:{fixtureId:string;sha256:string}){
  const errors=validateDraftForReview(sanitizeDraft({number:fields.number,vendor:fields.vendor,amount:Number(fields.amount),currency:fields.currency,dueDate:fields.dueDate,issueDate:fields.issueDate??'',description:fields.description??'',method:'manual'}));
  if(errors.length)throw new WorkflowError(errors.join(' '),422);
  const org=await organization();
@@ -29,8 +29,12 @@ export async function verifyInvoice(id:string,fields:{number:string;vendor:strin
   const invoice=await tx.invoice.findFirst({where:{id,organizationId:org.id}});
   if(!invoice)throw new WorkflowError('Factura no encontrada.',404);
   if(invoice.status!=='NEEDS_VERIFICATION'&&invoice.status!=='RECEIVED')throw new WorkflowError('Una decisión existente no puede alterarse. Registra otra factura.',409);
+  if(certification){
+    const recorded=await tx.invoiceDocument.findUnique({where:{invoiceId:id}});
+    if(!recorded || recorded.sha256!==certification.sha256)throw new WorkflowError('No coincide la huella del documento certificado.',409);
+  }
   const updated=await tx.invoice.update({where:{id},data:{externalNumber:fields.number.trim(),vendorName:fields.vendor.trim(),amount:fields.amount,currency:fields.currency.trim().toUpperCase(),dueDate:parseUTCDate(fields.dueDate),issueDate:parseUTCDate(fields.issueDate),description:fields.description?.trim()??null,verifiedAt:new Date(),status:'READY'}});
-  await tx.auditEvent.create({data:{organizationId:org.id,actorId,invoiceId:id,entityType:'Invoice',entityId:id,action:'DOCUMENT_VERIFIED',data:{number:updated.externalNumber,beneficiary:updated.vendorName,amount:updated.amount?.toString(),currency:updated.currency,source:'human_confirmation'}}});
+  await tx.auditEvent.create({data:{organizationId:org.id,actorId,invoiceId:id,entityType:'Invoice',entityId:id,action:'DOCUMENT_VERIFIED',data:{number:updated.externalNumber,beneficiary:updated.vendorName,amount:updated.amount?.toString(),currency:updated.currency,source:certification?'certified_fixture_sha256':'human_confirmation',fixtureId:certification?.fixtureId??null,sha256:certification?.sha256??null,paymentExecuted:false}}});
   return {id,status:updated.status};
  });
 }
