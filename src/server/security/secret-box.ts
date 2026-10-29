@@ -1,7 +1,8 @@
 import {createCipheriv,createDecipheriv,createHmac,randomBytes} from 'node:crypto';
+import {projectEnv} from '@/lib/project-env';
 /** En producción las claves deben ser aleatorias, persistentes y nunca almacenarse en Git. */
 export function loadKey(name:string):Buffer{
- const raw=process.env[name];
+ const raw=name.startsWith('FINVIGIA_')?projectEnv(name.slice('FINVIGIA_'.length)):process.env[name];
  if(!raw || !/^[0-9a-fA-F]{64}$/.test(raw))throw new Error(`${name} debe ser una clave hexadecimal de 32 bytes.`);
  return Buffer.from(raw,'hex');
 }

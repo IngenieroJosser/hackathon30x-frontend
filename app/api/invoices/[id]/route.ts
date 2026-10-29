@@ -1,3 +1,4 @@
+import {projectEnv} from '@/lib/project-env';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/server/db/prisma';
 import { requirePermission } from '@/server/security/auth';
@@ -9,7 +10,7 @@ export async function GET(request: NextRequest, { params }: Params) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) return NextResponse.json({ error:'Identificador inválido.' },{status:400});
   try {
-    const org = await getPrisma().organization.findUnique({where:{slug:process.env.BLINKA_DEMO_ORGANIZATION_SLUG||'atlas-global-demo'}, select:{id:true}});
+    const org = await getPrisma().organization.findUnique({where:{slug:projectEnv('DEMO_ORGANIZATION_SLUG')||'atlas-global-demo'}, select:{id:true}});
     if (!org) return NextResponse.json({ error:'Organización no encontrada.' },{status:404});
     const invoice = await getPrisma().invoice.findFirst({
       where:{id,organizationId:org.id},

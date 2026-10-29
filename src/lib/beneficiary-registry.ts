@@ -1,5 +1,5 @@
 /**
- * Directorio ficticio de beneficiarios para la hackathon 30X.
+ * Directorio ficticio de beneficiarios para la semillero de investigación.
  * Las decisiones de pago de verdad deben validarse en backend contra registros
  * verificados y versionados; localStorage NO es una barrera de seguridad.
  */
@@ -34,9 +34,9 @@ export type RegistryEvent = {
   revision: number;
 };
 export const COUNTRIES: BeneficiaryCountry[] = ['Colombia','México','Argentina','Brasil','Chile','Perú'];
-export const REGISTRY_KEY = 'blinka-sandbox:beneficiaries:v1';
-export const REGISTRY_AUDIT_KEY = 'blinka-sandbox:beneficiary-events:v1';
-export const REGISTRY_EVENT = 'blinka-sandbox:beneficiaries-updated';
+export const REGISTRY_KEY = 'finvigia-sandbox:beneficiaries:v1';
+export const REGISTRY_AUDIT_KEY = 'finvigia-sandbox:beneficiary-events:v1';
+export const REGISTRY_EVENT = 'finvigia-sandbox:beneficiaries-updated';
 
 export const normalName = (name: string): string => name.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').trim().replace(/\s+/g,' ').toLowerCase();
 const baseline = '2026-10-01T12:00:00.000Z';

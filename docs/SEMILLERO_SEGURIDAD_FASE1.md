@@ -1,4 +1,4 @@
-# Semillero Blinka — Fase 1 / controles gratuitos (28 octubre 2026)
+# Semillero FinVigía — Fase 1 / controles gratuitos (28 octubre 2026)
 
 ## Alcance entregado (implementado)
 

@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import { WorkspaceScreen } from '@/components/workspace/workspace-screen';
 
 export const metadata: Metadata = {
-  title: 'Detalle de factura | Blinka Decision Engine',
+  title: 'Detalle de factura | FinVigía Decision Engine',
   description: 'Revisión, decisión y trazabilidad de factura ficticia.',
 };
 
@@ -30,8 +30,8 @@ function InvoiceCaseFallback() {
   return (
     <main className="iv-page iv-route-loading" aria-busy="true">
       <div className="iv-route-loading-inner" role="status" aria-live="polite">
-        <Link className="iv-route-loading-brand" href="/" aria-label="Volver al dashboard de Blinka">
-          BLINKA<span>.</span> <small>DECISION ENGINE</small>
+        <Link className="iv-route-loading-brand" href="/" aria-label="Volver al dashboard de FinVigía">
+          FINVIGIA<span>.</span> <small>DECISION ENGINE</small>
         </Link>
         <span className="iv-kicker">DOCUMENT INTELLIGENCE / EXPEDIENTE</span>
         <h1>

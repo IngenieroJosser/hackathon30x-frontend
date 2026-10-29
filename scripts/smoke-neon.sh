@@ -1,13 +1,22 @@
 #!/usr/bin/env bash
+# Old environment keys are read only for backwards compatibility.
+for role in ADMIN APPROVER AUDITOR; do
+  for field in EMAIL PASSWORD; do
+    new="FINVIGIA_${role}_${field}"
+    old="BLINKA_${role}_${field}"
+    if [ -z "${!new:-}" ] && [ -n "${!old:-}" ]; then export "$new=${!old}"; fi
+  done
+done
+export FINVIGIA_API_URL="${FINVIGIA_API_URL:-${BLINKA_API_URL:-http://localhost:3000}}"
 set -euo pipefail
-: "${BLINKA_ADMIN_EMAIL:?Define BLINKA_ADMIN_EMAIL}"
-: "${BLINKA_ADMIN_PASSWORD:?Define BLINKA_ADMIN_PASSWORD}"
-API_URL="${BLINKA_API_URL:-http://localhost:3000}"
+: "${FINVIGIA_ADMIN_EMAIL:?Define FINVIGIA_ADMIN_EMAIL}"
+: "${FINVIGIA_ADMIN_PASSWORD:?Define FINVIGIA_ADMIN_PASSWORD}"
+API_URL="${FINVIGIA_API_URL:-http://localhost:3000}"
 COOKIE_JAR="$(mktemp)"; trap 'rm -f "$COOKIE_JAR"' EXIT
 LOGIN_PAYLOAD="$(mktemp)"; trap 'rm -f "$COOKIE_JAR" "$LOGIN_PAYLOAD"' EXIT
 python3 - "$LOGIN_PAYLOAD" <<'PYLOGIN'
 import os,sys,json
-with open(sys.argv[1],'w') as f: json.dump({'email':os.environ['BLINKA_ADMIN_EMAIL'],'password':os.environ['BLINKA_ADMIN_PASSWORD']},f)
+with open(sys.argv[1],'w') as f: json.dump({'email':os.environ['FINVIGIA_ADMIN_EMAIL'],'password':os.environ['FINVIGIA_ADMIN_PASSWORD']},f)
 PYLOGIN
 chmod 600 "$LOGIN_PAYLOAD"
 curl --fail-with-body -sS -c "$COOKIE_JAR" -o /dev/null "$API_URL/api/auth/session" -H "Origin: $API_URL" -H 'Content-Type: application/json' --data-binary "@$LOGIN_PAYLOAD"

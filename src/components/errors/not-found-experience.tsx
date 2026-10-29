@@ -57,9 +57,9 @@ export function NotFoundExperience() {
       </div>
 
       <header className="nf-header">
-        <Link href="/" className="brand-logo nf-brand" aria-label="Blinka Decision Engine — volver al inicio">
+        <Link href="/" className="brand-logo nf-brand" aria-label="FinVigía Decision Engine — volver al inicio">
           <span className="brand-mark" aria-hidden="true"><span /><span /></span>
-          <span className="brand-wordmark">blinka<span className="brand-dot">.</span></span>
+          <span className="brand-wordmark">finvigia<span className="brand-dot">.</span></span>
           <span className="brand-divider" />
           <span className="brand-product">DECISION ENGINE</span>
         </Link>
@@ -122,7 +122,7 @@ export function NotFoundExperience() {
       </nav>
 
       <footer className="nf-footer">
-        <span>BLINKA / AUTONOMOUS PAYABLES</span>
+        <span>FINVIGIA / AUTONOMOUS PAYABLES</span>
         <span className="nf-footer-middle">Diseñado para decisiones explicables.</span>
         <span>404 · SANDBOX / SIN PAGOS REALES</span>
       </footer>

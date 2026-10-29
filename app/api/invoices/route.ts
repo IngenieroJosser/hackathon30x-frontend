@@ -1,3 +1,4 @@
+import {projectEnv} from '@/lib/project-env';
 import { readJsonBounded } from '@/server/security/request-body';
 import { WorkflowError } from '@/server/workflows/common';
 import { NextRequest, NextResponse } from 'next/server';
@@ -6,7 +7,7 @@ import { requirePermission } from '@/server/security/auth';
 import { parseUTCDate, registerInvoiceSchema } from '@/server/modules-invoice-input';
 
 const noStore = { 'Cache-Control': 'no-store' };
-const organizationSlug = () => process.env.BLINKA_DEMO_ORGANIZATION_SLUG || 'atlas-global-demo';
+const organizationSlug = () => projectEnv('DEMO_ORGANIZATION_SLUG') || 'atlas-global-demo';
 
 /** GET: datos recuperados de Neon, sin estado de navegador. */
 export async function GET(request: NextRequest) {

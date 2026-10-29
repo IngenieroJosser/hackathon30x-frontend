@@ -4,8 +4,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/server/db/prisma';
 import { can, type Permission, type UserRole } from './roles';
 import { verifyPassword } from './password';
+import { projectEnv } from '@/lib/project-env';
 
-export const AUTH_COOKIE='blinka_auth_session';
+export const AUTH_COOKIE='finvigia_auth_session';
+export const LEGACY_AUTH_COOKIE='blinka_auth_session';
+export function sessionToken(request:NextRequest){return request.cookies.get(AUTH_COOKIE)?.value || request.cookies.get(LEGACY_AUTH_COOKIE)?.value;}
 const TTL_MS=8*60*60*1000;
 const noStore={'Cache-Control':'no-store'};
 export type AuthUser={id:string;organizationId:string;email:string;displayName:string;role:UserRole};
@@ -19,12 +22,12 @@ export function sessionCookie(value:string,maxAge:number){
   return {name:AUTH_COOKIE,value,options:{httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'lax' as const,path:'/',maxAge,priority:'high' as const}};
 }
 export async function currentIdentity(request:NextRequest):Promise<AuthIdentity|null> {
-  const token=request.cookies.get(AUTH_COOKIE)?.value;
+  const token=sessionToken(request);
   if(!token || !/^[a-f0-9]{64}$/.test(token))return null;
   const session=await getPrisma().authSession.findUnique({where:{tokenHash:tokenHash(token)},include:{user:{include:{organization:true}}}});
   if(!session || session.revokedAt || session.expiresAt.getTime()<=Date.now() || !session.user.isActive || !session.user.passwordHash)return null;
   const user=session.user;
-  if(user.organization.slug!==(process.env.BLINKA_DEMO_ORGANIZATION_SLUG||'atlas-global-demo'))return null;
+  if(user.organization.slug!==(projectEnv('DEMO_ORGANIZATION_SLUG')||'atlas-global-demo'))return null;
   return {sessionId:session.id,mfaEnabled:user.mfaEnabled,mfaVerified:session.mfaVerified,user:{id:user.id,organizationId:user.organizationId,email:user.email,displayName:user.displayName,role:user.role}};
 }
 export async function currentUser(request:NextRequest):Promise<AuthUser|null> {
@@ -46,7 +49,7 @@ export async function requirePermission(request:NextRequest,permission:Permissio
 }
 export async function authenticate(email:string,password:string):Promise<{user:AuthUser|null;token:string;requiresMfa:boolean;setupRequired:boolean}|null> {
   const prisma=getPrisma();
-  const org=await prisma.organization.findUnique({where:{slug:process.env.BLINKA_DEMO_ORGANIZATION_SLUG||'atlas-global-demo'}});
+  const org=await prisma.organization.findUnique({where:{slug:projectEnv('DEMO_ORGANIZATION_SLUG')||'atlas-global-demo'}});
   if(!org)return null;
   const user=await prisma.appUser.findUnique({where:{organizationId_email:{organizationId:org.id,email:email.trim().toLowerCase()}}});
   const fake='scrypt$16384$0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef$'+ '00'.repeat(64);
@@ -75,7 +78,7 @@ export async function authenticate(email:string,password:string):Promise<{user:A
   return {user:null,token,requiresMfa:user.mfaEnabled,setupRequired:!user.mfaEnabled};
 }
 export async function revokeSession(request:NextRequest):Promise<void>{
-  const token=request.cookies.get(AUTH_COOKIE)?.value;
+  const token=sessionToken(request);
   if(!token || !/^[a-f0-9]{64}$/.test(token))return;
   const hash=tokenHash(token);
   const prisma=getPrisma();

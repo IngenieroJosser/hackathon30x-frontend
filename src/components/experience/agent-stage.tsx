@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Icon } from '@/components/ui/icon';
 
 const beats = [
-  { kicker:'00 / UNA NUEVA FORMA DE OPERAR', eyebrow:'BLINKA AUTONOMOUS FINANCE',
+  { kicker:'00 / UNA NUEVA FORMA DE OPERAR', eyebrow:'FINVIGIA AUTONOMOUS FINANCE',
     heading:<>El criterio<br/>también se<br/><em>automatiza.</em></>,
     detail:'La inteligencia para procesar cada factura. El control para decidir cuáles realmente deben autorizarse.', position:'left' },
   { kicker:'01 / COMPRENSIÓN', eyebrow:'DOCUMENT INTELLIGENCE',
@@ -73,7 +73,7 @@ export function AgentStage({resolved,total,pending,onEnter,onPending}:{
     return ()=>observer.disconnect();
   },[mutedMotion]);
 
-  return <section className="agent-stage" ref={stage} aria-label="Experiencia visual del agente Blinka">
+  return <section className="agent-stage" ref={stage} aria-label="Experiencia visual del agente FinVigía">
     <div className="agent-scene-sticky">
       <div className="scene-art" aria-hidden="true">
         <div className="scene-image"/>

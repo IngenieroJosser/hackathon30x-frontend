@@ -1,4 +1,4 @@
-/** Shared browser storage for the hackathon sandbox. NOT financial-grade persistence. */
+/** Shared browser storage for the sandbox académico. NOT financial-grade persistence. */
 import type {Invoice, PaymentPolicy} from '@/types/payments';
 import type {InvoiceAuditEvent, InvoiceDraft, InvoiceDocument} from '@/types/invoice-workflow';
 import {INITIAL_INVOICES,DEMO_BATCH} from '@/lib/mock-data';
@@ -7,9 +7,9 @@ import { getDemoBeneficiaries,invoiceWithBeneficiary,normalName,type Beneficiary
 import {evaluateInvoiceSafely,validateDraftForReview} from '@/lib/invoice-processing';
 import {assessHumanApproval,validateReviewNote} from '@/lib/approval-workflow';
 
-export const INVOICE_STORE_KEY='blinka-sandbox:invoices:v2';
-export const INVOICE_EVENT_KEY='blinka-sandbox:invoice-events:v2';
-export const INVOICE_UPDATED_EVENT='blinka-sandbox:invoices-updated';
+export const INVOICE_STORE_KEY='finvigia-sandbox:invoices:v2';
+export const INVOICE_EVENT_KEY='finvigia-sandbox:invoice-events:v2';
+export const INVOICE_UPDATED_EVENT='finvigia-sandbox:invoices-updated';
 const ACTOR='Admin Finance · Sandbox';
 
 function isInvoice(x:unknown):x is Invoice{

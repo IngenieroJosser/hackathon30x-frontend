@@ -33,15 +33,15 @@ test('Códigos de recuperación son aleatorios, no reversibles y de un solo uso 
   assert.match(at('src/server/security/mfa-service.ts'),/tx\.mfaRecoveryCode\.deleteMany/);
 });
 test('Cifrado autenticado AES-GCM protege los datos y detecta manipulación',()=>{
-  process.env.BLINKA_BANK_DATA_KEY='01'.repeat(32);
+  process.env.FINVIGIA_BANK_DATA_KEY='01'.repeat(32);
   try{
-    const encrypted=seal('TEST-ACCOUNT-0001','BLINKA_BANK_DATA_KEY');
+    const encrypted=seal('TEST-ACCOUNT-0001','FINVIGIA_BANK_DATA_KEY');
     assert.doesNotMatch(encrypted,/TEST-ACCOUNT-0001/);
-    assert.equal(unseal(encrypted,'BLINKA_BANK_DATA_KEY'),'TEST-ACCOUNT-0001');
+    assert.equal(unseal(encrypted,'FINVIGIA_BANK_DATA_KEY'),'TEST-ACCOUNT-0001');
     const tampered=encrypted.slice(0,-2)+'ff';
-    assert.throws(()=>unseal(tampered,'BLINKA_BANK_DATA_KEY'));
-    assert.notEqual(keyedFingerprint('abc','BLINKA_BANK_DATA_KEY'),keyedFingerprint('abcd','BLINKA_BANK_DATA_KEY'));
-  } finally{delete process.env.BLINKA_BANK_DATA_KEY;}
+    assert.throws(()=>unseal(tampered,'FINVIGIA_BANK_DATA_KEY'));
+    assert.notEqual(keyedFingerprint('abc','FINVIGIA_BANK_DATA_KEY'),keyedFingerprint('abcd','FINVIGIA_BANK_DATA_KEY'));
+  } finally{delete process.env.FINVIGIA_BANK_DATA_KEY;}
 });
 test('Verificación bancaría ficticia válida: retorna SYNTHETIC_MATCH, nunca REAL_VERIFIED',async()=>{
   const result=await syntheticBankProvider.verify({institutionCode:'BANK-DEMO-A',accountReference:'TEST-ACCOUNT-0001',accountKind:'PAYROLL',holderReference:'PERSON-DEMO-0001'});

@@ -7,7 +7,7 @@ import {matchTotpStep,newTotpSecret,newRecoveryCode,recoveryDigest} from './mfa-
 import type {NextRequest} from 'next/server';
 import {WorkflowError} from '@/server/workflows/common';
 
-const CHALLENGE_COOKIE='blinka_mfa_pending';
+const CHALLENGE_COOKIE='finvigia_mfa_pending';
 export const mfaChallengeCookie=(value:string,maxAge:number)=>({name:CHALLENGE_COOKIE,value,options:{httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'strict' as const,path:'/',maxAge,priority:'high' as const}});
 export function newToken(){return randomBytes(32).toString('hex');}
 export function readMfaChallenge(request:NextRequest){const raw=request.cookies.get(CHALLENGE_COOKIE)?.value;return raw && /^[a-f0-9]{64}$/.test(raw)?raw:null;}
@@ -19,11 +19,11 @@ export async function pendingChallenge(request:NextRequest){
 export async function beginEnrollment(userId:string){
  const db=getPrisma();const user=await db.appUser.findUnique({where:{id:userId}});
  if(!user||user.mfaEnabled)throw new WorkflowError('La cuenta ya tiene MFA o no está disponible.',409);
- const secret=user.mfaPendingSecret?unseal(user.mfaPendingSecret,'BLINKA_MFA_KEY'):newTotpSecret();
- if(!user.mfaPendingSecret)await db.appUser.update({where:{id:userId},data:{mfaPendingSecret:seal(secret,'BLINKA_MFA_KEY')}});
- const label=encodeURIComponent(`Blinka:${user.email}`);
- const uri=`otpauth://totp/${label}?secret=${secret}&issuer=Blinka&algorithm=SHA1&digits=6&period=30`;
- return {secret,uri,issuer:'Blinka',account:user.email};
+ const secret=user.mfaPendingSecret?unseal(user.mfaPendingSecret,'FINVIGIA_MFA_KEY'):newTotpSecret();
+ if(!user.mfaPendingSecret)await db.appUser.update({where:{id:userId},data:{mfaPendingSecret:seal(secret,'FINVIGIA_MFA_KEY')}});
+ const label=encodeURIComponent(`FinVigía:${user.email}`);
+ const uri=`otpauth://totp/${label}?secret=${secret}&issuer=FinVigía&algorithm=SHA1&digits=6&period=30`;
+ return {secret,uri,issuer:'FinVigía',account:user.email};
 }
 export async function finishEnrollment(userId:string,sessionId:string,code:string){
  const db=getPrisma();
@@ -31,7 +31,7 @@ export async function finishEnrollment(userId:string,sessionId:string,code:strin
   const user=await tx.appUser.findUnique({where:{id:userId}});
   const session=await tx.authSession.findUnique({where:{id:sessionId}});
   if(!user || user.mfaEnabled || !user.mfaPendingSecret || !session || session.userId!==user.id || session.revokedAt || session.expiresAt<=new Date())throw new WorkflowError('Configuración MFA no disponible.',409);
-  const secret=unseal(user.mfaPendingSecret,'BLINKA_MFA_KEY');
+  const secret=unseal(user.mfaPendingSecret,'FINVIGIA_MFA_KEY');
   const step=matchTotpStep(secret,code,Date.now(),Number(user.mfaLastStep));
   if(step===null)throw new WorkflowError('Código MFA incorrecto o ya utilizado.',401);
   const changed=await tx.appUser.updateMany({where:{id:user.id,mfaEnabled:false,mfaPendingSecret:user.mfaPendingSecret},data:{mfaEnabled:true,mfaSecret:user.mfaPendingSecret,mfaPendingSecret:null,mfaLastStep:BigInt(step)}});
@@ -55,7 +55,7 @@ export async function finishLogin(request:NextRequest,code:string){
  if(claimed.count!==1)throw new WorkflowError('Desafío MFA agotado.',401);
  const user=challenge.user;
  const isTotp=/^\d{6}$/.test(code);
- const totpStep=isTotp?matchTotpStep(unseal(encryptedSecret,'BLINKA_MFA_KEY'),code,Date.now(),Number(user.mfaLastStep)):null;
+ const totpStep=isTotp?matchTotpStep(unseal(encryptedSecret,'FINVIGIA_MFA_KEY'),code,Date.now(),Number(user.mfaLastStep)):null;
  const digest= !isTotp && /^[A-Fa-f\d\-]{24,30}$/.test(code)?recoveryDigest(code):null;
  return db.$transaction(async tx=>{
   let accepted=false;

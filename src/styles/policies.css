@@ -1,4 +1,4 @@
-/* Policy governance / Blinka Decision Engine — self-contained route surface. */
+/* Policy governance / FinVigía Decision Engine — self-contained route surface. */
 .policies-page{background:#070b09;min-height:100vh;overflow:clip;color:#eaf1e8}
 .policies-page a{text-decoration:none}.policies-page input,.policies-page select{color-scheme:dark}
 .policies-hero{height:min(790px,91svh);min-height:650px;position:relative;isolation:isolate;display:flex;align-items:center;overflow:hidden;background:#080b08;border-bottom:1px solid #c8f6a61d}

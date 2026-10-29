@@ -55,7 +55,7 @@ export function BeneficiaryEditor({editing,existing,onClose,onSubmit}:Props){
   };
   return <div className="bn-modal-backdrop" onMouseDown={e=>{if(e.currentTarget===e.target)onClose();}}>
     <div ref={ref} tabIndex={-1} className="bn-editor" role="dialog" aria-modal="true" aria-labelledby="bn-editor-title">
-      <div className="bn-editor-header"><div><span className="bn-eyebrow">TRUST REGISTRY / {editing?'EDIT RECORD':'CREATE RECORD'}</span><h2 id="bn-editor-title">{editing?'Editar beneficiario':'Nuevo beneficiario'}<em>.</em></h2><p>Los cambios se registran en el entorno ficticio de Blinka.</p></div><button type="button" className="bn-icon-button" aria-label="Cerrar formulario" onClick={onClose}><Icon name="close" size={18}/></button></div>
+      <div className="bn-editor-header"><div><span className="bn-eyebrow">TRUST REGISTRY / {editing?'EDIT RECORD':'CREATE RECORD'}</span><h2 id="bn-editor-title">{editing?'Editar beneficiario':'Nuevo beneficiario'}<em>.</em></h2><p>Los cambios se registran en el entorno ficticio de FinVigía.</p></div><button type="button" className="bn-icon-button" aria-label="Cerrar formulario" onClick={onClose}><Icon name="close" size={18}/></button></div>
       <form onSubmit={submit} noValidate className="bn-form">
         {fields.slice(0,1).map(field=><div className="bn-field" key={field.key}><label htmlFor={`bn-${field.key}`}>{field.label} <b>*</b></label><input id={`bn-${field.key}`} autoFocus={!editing} value={String(form[field.key])} placeholder={field.placeholder} onChange={e=>update(field.key,e.target.value as never)} maxLength={95}/>{errors[field.key]&&<span className="bn-field-error" role="alert">{errors[field.key]}</span>}</div>)}
         <div className="bn-field-row">

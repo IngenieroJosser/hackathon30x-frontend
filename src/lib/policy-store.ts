@@ -5,9 +5,9 @@ import { validateDemoPolicy, type PolicyAmountKey, type PolicyValues } from '@/l
 export { POLICY_FIELD_LABEL, validateDemoPolicy } from '@/lib/policy-validation';
 export type { PolicyAmountKey, PolicyValues } from '@/lib/policy-validation';
 
-export const POLICY_STORAGE_KEY = 'blinka-sandbox:active-policy:v1';
-export const POLICY_HISTORY_KEY = 'blinka-sandbox:policy-events:v1';
-export const POLICY_UPDATED_EVENT = 'blinka-sandbox:policy-updated';
+export const POLICY_STORAGE_KEY = 'finvigia-sandbox:active-policy:v1';
+export const POLICY_HISTORY_KEY = 'finvigia-sandbox:policy-events:v1';
+export const POLICY_UPDATED_EVENT = 'finvigia-sandbox:policy-updated';
 export type PolicyHistoryEvent = {
   id: string;
   at: string;
@@ -46,7 +46,7 @@ export function getDemoPolicyHistory(): PolicyHistoryEvent[] {
   } catch { return []; }
 }
 
-/** Writes to local browser storage for hackathon demo only. Not a production policy service. */
+/** Writes to local browser storage for demostración académica only. Not a production policy service. */
 export function publishDemoPolicy(values: PolicyValues): { policy: PaymentPolicy; event: PolicyHistoryEvent | null } {
   const errors = validateDemoPolicy({ ...values, currency: 'USD' });
   if (errors.length) throw new Error(errors.join(' '));

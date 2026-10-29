@@ -36,7 +36,7 @@ export function AppShell({children,alerts,onPendingClick,onSearchClick,currentPa
   return <div className="app-frame" id="inicio">
     {menuOpen&&<button className="mobile-scrim" type="button" aria-label="Cerrar menú" onClick={()=>setMenuOpen(false)}/>}
     <header className="topbar">
-      <Link href="/" className="brand-logo" aria-label="Blinka Decision Engine, inicio"><span className="brand-mark" aria-hidden="true"><span/><span/></span><span className="brand-wordmark">blinka<span className="brand-dot">.</span></span><span className="brand-divider"/><span className="brand-product">DECISION ENGINE</span></Link>
+      <Link href="/" className="brand-logo" aria-label="FinVigía Decision Engine, inicio"><span className="brand-mark" aria-hidden="true"><span/><span/></span><span className="brand-wordmark">finvigia<span className="brand-dot">.</span></span><span className="brand-divider"/><span className="brand-product">DECISION ENGINE</span></Link>
       <div className="topbar-center"><span className="header-slash">/</span><span>ATLAS GLOBAL INC.</span><span className="header-slash">/</span><span className="header-current">{currentPage === 'policies' ? 'POLICY CENTER' : currentPage === 'beneficiaries' ? 'TRUST REGISTRY' : currentPage === 'invoices' ? 'DOCUMENT STUDIO' : currentPage === 'invoice-detail' ? 'INVOICE CASE' : currentPage === 'approvals' ? 'HUMAN OVERSIGHT' : currentPage === 'audit' ? 'AUDIT TRAIL' : 'OVERVIEW'}</span></div>
       <div className="topbar-right">
         <span className="header-sandbox"><i/> SANDBOX MODE</span>

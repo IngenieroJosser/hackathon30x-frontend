@@ -83,7 +83,7 @@ export function DashboardPage() {
     const payload={generatedAt:new Date().toISOString(),environment:'synthetic-demo',paymentExecution:false,activePolicyAtExport:activePolicy,policyVersionOnEachDecision:true,fullPolicySnapshotPerDecision:false,decisions:invoices.map(({id,number,vendor,amount,currency,status,ruleCode,reason,checks,reviewedBy,reviewedAt,reviewNote,policyVersion,beneficiaryRevision})=>({id,number,vendor,amount,currency,status,ruleCode,reason,checks,policyVersion:policyVersion??null,beneficiaryRevision:beneficiaryRevision??null,reviewedBy:reviewedBy??null,reviewedAt:reviewedAt??null,reviewNote:reviewNote??null}))};
     const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob);
-    const link=document.createElement('a');link.href=url;link.download='blinka-auditoria-demo.json';document.body.append(link);link.click();link.remove();
+    const link=document.createElement('a');link.href=url;link.download='finvigia-auditoria-demo.json';document.body.append(link);link.click();link.remove();
     URL.revokeObjectURL(url);
     setToast('Archivo JSON de auditoría descargado.');
   };
@@ -100,7 +100,7 @@ export function DashboardPage() {
         </div>
         <div className="page-actions"><button className="button button-secondary" onClick={downloadAudit} type="button"><Icon name="download" size={16}/> Exportar auditoría</button><button className="button button-dark" onClick={runBatch} disabled={demoRun} type="button"><Icon name={demoRun?'check':'plus'} size={17}/>{demoRun?'Lote procesado':'Procesar lote demo'}</button></div>
       </section>
-      <div className="environment-banner"><span className="environment-icon"><Icon name="shield" size={16}/></span><span><strong>Sandbox de Blinka.</strong> Todos los datos son sintéticos; las autorizaciones no ejecutan pagos reales.</span><span className="banner-version">{activePolicy.version}</span></div>
+      <div className="environment-banner"><span className="environment-icon"><Icon name="shield" size={16}/></span><span><strong>Sandbox de FinVigía.</strong> Todos los datos son sintéticos; las autorizaciones no ejecutan pagos reales.</span><span className="banner-version">{activePolicy.version}</span></div>
       <section className="metrics-section" aria-label="Indicadores de facturas"><div className="metrics-grid">
         <MetricCard eyebrow="Facturas evaluadas" value={integer(counts.total)} sub="Registros analizados" icon="receipt"/>
         <MetricCard eyebrow="Autorizadas" value={integer(counts.authorized)} sub="Incluye revisiones humanas" icon="check" tone="success"/>
@@ -124,7 +124,7 @@ export function DashboardPage() {
       <div className="analytics-grid"><DecisionChart invoices={invoices}/><BudgetCard invoices={invoices} policy={activePolicy}/></div>
       <div className="section-heading table-section-intro"><div><div className="section-kicker"><i/> TRACEABILITY <span>/</span> RECORDS 003</div><h2>Cada decisión. Una evidencia.</h2><p>Consulta todos los resultados, reglas y justificaciones sin salir de tu operación.</p></div><button className="button button-secondary" type="button" onClick={downloadAudit}><Icon name="download" size={15}/> JSON</button></div>
       <RecentInvoices invoices={invoices} filter={filter} onFilterChange={setFilter} onSelect={invoice=>setSelectedId(invoice.id)} tableRef={tableRef} searchRef={searchRef}/>
-      <footer className="site-footer"><span>© 2026 BLINKA DECISION ENGINE / SANDBOX</span><span>CONCEPTO DE PRODUCTO POR ZYRA <span className="footer-divider">·</span> NO REAL PAYMENTS</span></footer>
+      <footer className="site-footer"><span>© 2026 FINVIGIA DECISION ENGINE / SANDBOX</span><span>CONCEPTO DE PRODUCTO POR ZYRA <span className="footer-divider">·</span> NO REAL PAYMENTS</span></footer>
     </div>
     <InvoiceDetail invoice={selected} onClose={()=>setSelectedId(null)} onApprove={openHumanControl} onReject={openHumanControl}/>
     {toast&&<div className="toast" role="status"><Icon name="check" size={17}/><span>{toast}</span><button type="button" aria-label="Cerrar mensaje" onClick={()=>setToast(null)}><Icon name="close" size={15}/></button></div>}

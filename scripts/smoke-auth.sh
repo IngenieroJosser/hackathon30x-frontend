@@ -1,18 +1,27 @@
 #!/usr/bin/env bash
+# Old environment keys are read only for backwards compatibility.
+for role in ADMIN APPROVER AUDITOR; do
+  for field in EMAIL PASSWORD; do
+    new="FINVIGIA_${role}_${field}"
+    old="BLINKA_${role}_${field}"
+    if [ -z "${!new:-}" ] && [ -n "${!old:-}" ]; then export "$new=${!old}"; fi
+  done
+done
+export FINVIGIA_API_URL="${FINVIGIA_API_URL:-${BLINKA_API_URL:-http://localhost:3000}}"
 set -euo pipefail
-: "${BLINKA_ADMIN_EMAIL:?Set BLINKA_ADMIN_EMAIL locally}"
-: "${BLINKA_ADMIN_PASSWORD:?Set BLINKA_ADMIN_PASSWORD locally}"
-: "${BLINKA_APPROVER_EMAIL:?Set BLINKA_APPROVER_EMAIL locally}"
-: "${BLINKA_APPROVER_PASSWORD:?Set BLINKA_APPROVER_PASSWORD locally}"
-: "${BLINKA_AUDITOR_EMAIL:?Set BLINKA_AUDITOR_EMAIL locally}"
-: "${BLINKA_AUDITOR_PASSWORD:?Set BLINKA_AUDITOR_PASSWORD locally}"
-BASE="${BLINKA_API_URL:-http://localhost:3000}"
+: "${FINVIGIA_ADMIN_EMAIL:?Set FINVIGIA_ADMIN_EMAIL locally}"
+: "${FINVIGIA_ADMIN_PASSWORD:?Set FINVIGIA_ADMIN_PASSWORD locally}"
+: "${FINVIGIA_APPROVER_EMAIL:?Set FINVIGIA_APPROVER_EMAIL locally}"
+: "${FINVIGIA_APPROVER_PASSWORD:?Set FINVIGIA_APPROVER_PASSWORD locally}"
+: "${FINVIGIA_AUDITOR_EMAIL:?Set FINVIGIA_AUDITOR_EMAIL locally}"
+: "${FINVIGIA_AUDITOR_PASSWORD:?Set FINVIGIA_AUDITOR_PASSWORD locally}"
+BASE="${FINVIGIA_API_URL:-http://localhost:3000}"
 WORK="$(mktemp -d)"; trap 'rm -rf "$WORK"' EXIT
 chmod 700 "$WORK"
 make_payload(){ ROLE="$1" python3 - "$WORK/$1.json" <<'PYLOGIN'
 import os,json,sys
 role=os.environ['ROLE']
-with open(sys.argv[1],'w') as f: json.dump({'email':os.environ[f'BLINKA_{role}_EMAIL'],'password':os.environ[f'BLINKA_{role}_PASSWORD']},f)
+with open(sys.argv[1],'w') as f: json.dump({'email':os.environ[f'FINVIGIA_{role}_EMAIL'],'password':os.environ[f'FINVIGIA_{role}_PASSWORD']},f)
 PYLOGIN
 chmod 600 "$WORK/$1.json"
 }

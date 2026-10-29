@@ -5,7 +5,7 @@ import { previewInvoiceDecision } from '@/lib/invoice-processing';
 /**
  * Functional preview of a human-approval attempt. The same guard is re-run by
  * the write operation; UI affordances do not grant permission to authorize.
- * All values belong to the synthetic browser-only hackathon sandbox.
+ * All values belong to the synthetic browser-only sandbox académico.
  */
 export function assessHumanApproval(
   invoice: Invoice,

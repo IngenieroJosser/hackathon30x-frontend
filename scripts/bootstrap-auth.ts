@@ -1,3 +1,4 @@
+import {projectEnv} from '../src/lib/project-env';
 /** CLI ONLY: provision sandbox users after `yarn db:deploy` + `yarn db:seed`.
  * Supply private email/password values through local environment; NEVER deploy these bootstrap secrets.
  * Passwords must have at least 14 characters. No defaults or public signup.
@@ -10,15 +11,15 @@ const url=process.env.DIRECT_URL;
 if(!url)throw new Error('DIRECT_URL no configurada.');
 const prisma=new PrismaClient({adapter:new PrismaPg({connectionString:url,max:2})});
 async function main(){
- const slug=process.env.BLINKA_DEMO_ORGANIZATION_SLUG||'atlas-global-demo';
+ const slug=projectEnv('DEMO_ORGANIZATION_SLUG')||'atlas-global-demo';
  const org=await prisma.organization.findUnique({where:{slug}});
  if(!org)throw new Error('Organización no encontrada. Ejecuta yarn db:seed.');
  const entries=[
-  {role:'ADMIN' as const,label:'Administrador',prefix:'BLINKA_ADMIN'},
-  {role:'APPROVER' as const,label:'Aprobador',prefix:'BLINKA_APPROVER'},
-  {role:'AUDITOR' as const,label:'Auditor',prefix:'BLINKA_AUDITOR'},
+  {role:'ADMIN' as const,label:'Administrador',prefix:'FINVIGIA_ADMIN'},
+  {role:'APPROVER' as const,label:'Aprobador',prefix:'FINVIGIA_APPROVER'},
+  {role:'AUDITOR' as const,label:'Auditor',prefix:'FINVIGIA_AUDITOR'},
  ];
- const all=entries.map(e=>({...e,email:process.env[e.prefix+'_EMAIL']?.trim().toLowerCase(),password:process.env[e.prefix+'_PASSWORD']}));
+ const all=entries.map(e=>({...e,email:projectEnv(e.prefix.replace(/^FINVIGIA_/, '')+'_EMAIL')?.trim().toLowerCase(),password:projectEnv(e.prefix.replace(/^FINVIGIA_/, '')+'_PASSWORD')}));
  for(const u of all){
   if(!u.email || !u.password || !passwordIsStrong(u.password))throw new Error(`Configura ${u.prefix}_EMAIL y ${u.prefix}_PASSWORD (14-256 caracteres).`);
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(u.email))throw new Error(`Email inválido: ${u.prefix}`);

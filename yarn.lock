@@ -3863,9 +3863,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hackathon30x-frontend@workspace:.":
+"finvigia-frontend@workspace:.":
   version: 0.0.0-use.local
-  resolution: "hackathon30x-frontend@workspace:."
+  resolution: "finvigia-frontend@workspace:."
   dependencies:
     "@prisma/adapter-pg": "npm:7.10.0"
     "@prisma/client": "npm:7.10.0"

@@ -49,7 +49,7 @@ test('Endpoints: permisos explícitos antes de acceder a las funciones financier
   assert.match(source,/requirePermission/);
   assert.match(source,new RegExp(`['"]${permission}['"]`),path);
  }
- assert.equal(read('src/server/security/auth.ts').includes('BLINKA_DEMO_API_TOKEN'),false);
+ assert.equal(read('src/server/security/auth.ts').includes('FINVIGIA_DEMO_API_TOKEN'),false);
  assert.equal(read('app/api/auth/session/route.ts').includes('sessionCookie('),true);
  assert.equal(read('prisma/schema.prisma').includes('model AuthSession'),true);
  assert.equal(read('src/server/workflows/engine.ts').includes('reviewerId:actorId'),true);

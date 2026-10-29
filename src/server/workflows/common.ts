@@ -1,7 +1,8 @@
 import 'server-only';
 import type { Prisma, PrismaClient } from '@/generated/prisma/client';
 import { getPrisma } from '@/server/db/prisma';
-export const slug=()=>process.env.BLINKA_DEMO_ORGANIZATION_SLUG || 'atlas-global-demo';
+import { projectEnv } from '@/lib/project-env';
+export const slug=()=>projectEnv('DEMO_ORGANIZATION_SLUG') || 'atlas-global-demo';
 export async function organization() {
   const found=await getPrisma().organization.findUnique({where:{slug:slug()}});
   if(!found)throw new WorkflowError('Organización no encontrada. Ejecuta yarn db:seed.',404);
@@ -24,7 +25,7 @@ export function apiFailure(error:unknown){
   if(error instanceof WorkflowError)return {status:error.status,message:error.message};
   if(error && typeof error==='object' && 'code' in error && error.code==='P2034')return {status:409,message:'Conflicto de concurrencia. Reintenta la operación.'};
   if(error && typeof error==='object' && 'code' in error && error.code==='P2002')return {status:409,message:'El registro ya existe o fue modificado por otra operación.'};
-  console.error('[blinka-workflow]',error instanceof Error?error.name:'Unknown');
+  console.error('[finvigia-workflow]',error instanceof Error?error.name:'Unknown');
   return {status:503,message:'Operación no disponible. Verifica Neon y la configuración.'};
 }
 export async function serializable<T>(handler:(tx:Prisma.TransactionClient)=>Promise<T>):Promise<T>{

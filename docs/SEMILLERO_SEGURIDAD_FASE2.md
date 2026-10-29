@@ -1,4 +1,4 @@
-# Blinka Decision Engine — Fase 2: MFA + Verificador bancario conectado
+# FinVigía Decision Engine — Fase 2: MFA + Verificador bancario conectado
 
 > **ALCANCE ACADÉMICO**. Este repositorio NO valida cuentas de bancos reales, NO demuestra titularidad real, NO es una herramienta de pagos, NO ejecuta transferencias, NO certifica cumplimiento normativo. Los datos de `BANK-DEMO-*`, `TEST-ACCOUNT-*` y `PERSON-DEMO-*` son ficticios. Las autorizaciones son simuladas y se almacenan para estudio de reglas, auditoría y controles de seguridad.
 
@@ -28,13 +28,13 @@ Conserva tus credenciales existentes; no las pegues en el chat ni las agregues a
 
 ```dotenv
 # Genera claves distintas con: openssl rand -hex 32
-BLINKA_MFA_KEY="TU_CLAVE_HEX_64_CARACTERES_A"
-BLINKA_BANK_DATA_KEY="TU_CLAVE_HEX_64_CARACTERES_B"
-BLINKA_BANK_MODE="synthetic"
-BLINKA_ALLOW_SYNTHETIC_DECISIONS="true"
+FINVIGIA_MFA_KEY="TU_CLAVE_HEX_64_CARACTERES_A"
+FINVIGIA_BANK_DATA_KEY="TU_CLAVE_HEX_64_CARACTERES_B"
+FINVIGIA_BANK_MODE="synthetic"
+FINVIGIA_ALLOW_SYNTHETIC_DECISIONS="true"
 ```
 
-`BLINKA_ALLOW_SYNTHETIC_DECISIONS=true` permite únicamente las **decisiones financieras simuladas** dentro del sandbox. No concede verificación real. Cuando el modo está desactivado, la verificación sintética no habilita autorizaciones. El servidor falla cerrado si faltan claves de cifrado al registrar datos o configurar MFA. No cambies las claves sin un plan de rotación, porque los datos ya cifrados dejarán de ser descifrables.
+`FINVIGIA_ALLOW_SYNTHETIC_DECISIONS=true` permite únicamente las **decisiones financieras simuladas** dentro del sandbox. No concede verificación real. Cuando el modo está desactivado, la verificación sintética no habilita autorizaciones. El servidor falla cerrado si faltan claves de cifrado al registrar datos o configurar MFA. No cambies las claves sin un plan de rotación, porque los datos ya cifrados dejarán de ser descifrables.
 
 ## Actualización en la Mac
 
@@ -54,7 +54,7 @@ yarn dev
 
 La migración **`20261029000000_mfa_banking`** crea tablas y campos. `db:deploy` usa `DIRECT_URL`: confirma que apunta a la rama de prueba correcta. El código NO ejecuta migraciones de forma automática al arrancar.
 
-Si los usuarios ADMIN, APPROVER y AUDITOR ya existen, **no hace falta ejecutar** `yarn auth:bootstrap`. Si aún no los has creado, configura `BLINKA_ADMIN_EMAIL`, `BLINKA_ADMIN_PASSWORD`, `BLINKA_APPROVER_EMAIL`, `BLINKA_APPROVER_PASSWORD`, `BLINKA_AUDITOR_EMAIL`, `BLINKA_AUDITOR_PASSWORD` en `.env` y ejecuta `yarn db:seed` y `yarn auth:bootstrap`. Contraseñas de más de 14 caracteres y distintas; bootstrap renueva contraseñas y revoca sesiones de esos usuarios.
+Si los usuarios ADMIN, APPROVER y AUDITOR ya existen, **no hace falta ejecutar** `yarn auth:bootstrap`. Si aún no los has creado, configura `FINVIGIA_ADMIN_EMAIL`, `FINVIGIA_ADMIN_PASSWORD`, `FINVIGIA_APPROVER_EMAIL`, `FINVIGIA_APPROVER_PASSWORD`, `FINVIGIA_AUDITOR_EMAIL`, `FINVIGIA_AUDITOR_PASSWORD` en `.env` y ejecuta `yarn db:seed` y `yarn auth:bootstrap`. Contraseñas de más de 14 caracteres y distintas; bootstrap renueva contraseñas y revoca sesiones de esos usuarios.
 
 ## Cómo probar MFA
 

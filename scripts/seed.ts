@@ -1,3 +1,4 @@
+import {projectEnv} from '../src/lib/project-env';
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client';
@@ -7,7 +8,7 @@ const url = process.env.DIRECT_URL;
 if (!url) throw new Error('DIRECT_URL no configurada.');
 const adapter = new PrismaPg({ connectionString: url, max: 2 });
 const prisma = new PrismaClient({ adapter });
-const slug = process.env.BLINKA_DEMO_ORGANIZATION_SLUG ?? 'atlas-global-demo';
+const slug = projectEnv('DEMO_ORGANIZATION_SLUG') ?? 'atlas-global-demo';
 
 async function main() {
   const organization = await prisma.organization.upsert({

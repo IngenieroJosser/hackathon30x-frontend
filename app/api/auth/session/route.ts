@@ -1,7 +1,7 @@
 import { readJsonBounded } from '@/server/security/request-body';
 import { NextRequest,NextResponse } from 'next/server';
 import { z } from 'zod';
-import { authenticate,currentUser,currentIdentity,isSameOrigin,revokeSession,sessionCookie } from '@/server/security/auth';
+import { authenticate,currentUser,currentIdentity,isSameOrigin,revokeSession,sessionCookie,LEGACY_AUTH_COOKIE } from '@/server/security/auth';
 import {mfaChallengeCookie,pendingChallenge} from '@/server/security/mfa-service';
 import { consumeLoginAttempt } from '@/server/security/login-throttle';
 import { WorkflowError } from '@/server/workflows/common';
@@ -35,5 +35,7 @@ export async function DELETE(request:NextRequest){
  try{await revokeSession(request);}catch{return NextResponse.json({error:'No se pudo cerrar la sesión.'},{status:503,headers:noStore});}
  const response=NextResponse.json({user:null},{headers:noStore});
  const cookie=sessionCookie('',0);response.cookies.set(cookie.name,cookie.value,cookie.options);const pending=mfaChallengeCookie('',0);response.cookies.set(pending.name,pending.value,pending.options);
+ // Delete the legacy cookie too; an old browser session must not survive logout.
+ response.cookies.set(LEGACY_AUTH_COOKIE,'',{...cookie.options,maxAge:0});
  return response;
 }

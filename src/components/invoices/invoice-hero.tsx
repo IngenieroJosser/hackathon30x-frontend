@@ -16,6 +16,6 @@ export function InvoiceHero({onImport,mode='list'}:{onImport?:()=>void;mode?:'li
       <div className="iv-hero-foot"><span>01 / CAPTURE</span><i/><span>02 / EXTRACT</span><i/><span>03 / VERIFY</span><i/><span>04 / DECIDE</span></div>
     </div>
     <div className="iv-hero-tag"><Icon name="bolt" size={16}/><span><strong>AGENT CORE</strong><small>Controlado por políticas · Sandbox</small></span><span className="iv-tag-pulse"/></div>
-    <div className="iv-bottom-line">BLINKA INTELLIGENCE <span>NO REAL MONEY MOVEMENT · SANDBOX</span></div>
+    <div className="iv-bottom-line">FINVIGIA INTELLIGENCE <span>NO REAL MONEY MOVEMENT · SANDBOX</span></div>
   </section>;
 }

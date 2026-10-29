@@ -1,4 +1,4 @@
-/* Blinka Decision Engine — immersive global 404; intentionally no AppShell. */
+/* FinVigía Decision Engine — immersive global 404; intentionally no AppShell. */
 .nf{--nf-lime:var(--accent);position:relative;isolation:isolate;min-height:100svh;overflow:hidden;display:flex;flex-direction:column;background:#050908;color:var(--white)}
 .nf-visual,.nf-visual>*{pointer-events:none}.nf-visual{position:absolute;inset:0;z-index:-1;overflow:hidden;background:#030605}.nf-visual-backdrop,.nf-video,.nf-image,.nf-video-mask,.nf-grid{position:absolute;inset:0;width:100%;height:100%}
 .nf-visual-backdrop{background:radial-gradient(ellipse 53% 60% at 72% 43%,rgba(97,132,105,.1),transparent 72%)}

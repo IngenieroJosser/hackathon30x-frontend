@@ -51,7 +51,7 @@ function exportCsv(entries:AuditEntry[]){
   const columns=['fecha_utc','categoria','accion','referencia','actor','codigo_regla','explicacion','evidencia'];
   const rows=entries.map(e=>[e.timestamp,e.category,e.action,e.reference,e.actor,e.ruleCode??'',e.description,e.evidence]);
   const content='\uFEFF'+[columns.join(','),...rows.map(r=>r.map(csvCell).join(','))].join('\r\n');
-  download(new Blob([content],{type:'text/csv;charset=utf-8'}),'blinka-auditoria-sandbox.csv');
+  download(new Blob([content],{type:'text/csv;charset=utf-8'}),'finvigia-auditoria-sandbox.csv');
 }
 
 function AuditHero({events,unverified,onExplore}:{events:number;unverified:number;onExplore:()=>void}){
@@ -66,7 +66,7 @@ function AuditHero({events,unverified,onExplore}:{events:number;unverified:numbe
       <div className="au-hero-ctas"><button className="au-button-primary" type="button" onClick={onExplore}>Explorar trazabilidad <Icon name="arrow" size={17}/></button><Link href="/facturas" className="au-button-plain">Ir al centro documental <Icon name="arrowUp" size={15}/></Link></div>
     </div>
     <div className="au-hero-diagnostic"><div className="au-diagnostic-top"><span>TRACE / SANDBOX</span><Icon name="audit" size={17}/></div><strong>{String(events).padStart(2,'0')}<small>EVENTOS</small></strong><div className="au-diagnostic-bottom"><span className="au-pulse"/> {unverified} expediente(s) de fixture sin historial</div></div>
-    <div className="au-hero-bottom"><span>BLINKA / FINANCIAL DECISION INTELLIGENCE</span><span>LOCAL EVIDENCE — DEMO ONLY</span></div>
+    <div className="au-hero-bottom"><span>FINVIGIA / FINANCIAL DECISION INTELLIGENCE</span><span>LOCAL EVIDENCE — DEMO ONLY</span></div>
   </section>;
 }
 
@@ -133,7 +133,7 @@ export function AuditPage(){
   const onSelectEntry=(id:string)=>{setSelectedId(id);if(window.innerWidth<1000)inspectorRef.current?.scrollIntoView({behavior:'smooth',block:'start'});};
   const jsonExport=()=>{
     const payload=exportAuditPayload(filtered,coverage,policy.version);
-    download(new Blob([JSON.stringify({...payload,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'}),'blinka-auditoria-sandbox.json');
+    download(new Blob([JSON.stringify({...payload,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'}),'finvigia-auditoria-sandbox.json');
   };
   return <AppShell currentPage="audit" alerts={pendingCount} onPendingClick={()=>window.location.assign('/aprobaciones')} onSearchClick={()=>{scrollTimeline();searchRef.current?.focus();}}>
     <div className="au-page">
@@ -154,7 +154,7 @@ export function AuditPage(){
           </div>
         </section>
         <section className="au-principles"><div><span className="au-eyebrow">03 / TRUST BY DESIGN</span><h2>La explicabilidad no es <em>una promesa.</em><br/>Es un registro.</h2></div><div className="au-principle-grid"><div><Icon name="shield" size={21}/><strong>Reglas visibles</strong><p>Cada evaluación registrada puede conservar su código de regla y la versión de política aplicada.</p></div><div><Icon name="users" size={21}/><strong>Decisiones atribuibles</strong><p>Las autorizaciones y rechazos almacenan un responsable ficticio y una justificación.</p></div><div><Icon name="lock" size={21}/><strong>Límites explícitos</strong><p>Este prototipo funciona en el navegador. Producción exige identidad real, autorización del servidor y registros inmutables.</p></div></div></section>
-        <footer className="au-footer"><span>BLINKA DECISION ENGINE <i/> BY ZYRA</span><span>EXPLAINABILITY / SYNTHETIC ENVIRONMENT</span></footer>
+        <footer className="au-footer"><span>FINVIGIA DECISION ENGINE <i/> BY ZYRA</span><span>EXPLAINABILITY / SYNTHETIC ENVIRONMENT</span></footer>
       </div>
     </div>
   </AppShell>;

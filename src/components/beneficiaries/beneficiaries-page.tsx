@@ -43,7 +43,7 @@ function RegistryHero({onNew,onExplore,count}:{onNew:()=>void;onExplore:()=>void
       <div className="bn-hero-proof"><span><Icon name="shield" size={15}/> Reglas antes que automatización</span><i/><span>Datos sintéticos · Sandbox</span></div>
     </div>
     <div className="bn-hero-capsule" aria-hidden="true"><span className="bn-capsule-pulse"/><div><small>TRUST NETWORK / ONLINE</small><strong>{String(count).padStart(2,'0')} <span>registros</span></strong></div><Icon name="globe" size={23}/></div>
-    <div className="bn-hero-index">BLINKA / AGENT INTELLIGENCE <span>03 — 07</span></div>
+    <div className="bn-hero-index">FINVIGIA / AGENT INTELLIGENCE <span>03 — 07</span></div>
   </section>;
 }
 
@@ -122,7 +122,7 @@ export function BeneficiariesPage(){
   const exportRegistry=()=>{
     const payload={environment:'synthetic-demo',generatedAt:new Date().toISOString(),paymentExecution:false,identityVerification:false,beneficiaries:items,auditEvents:events};
     const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));
-    const link=document.createElement('a');link.href=url;link.download='blinka-beneficiarios-demo.json';document.body.append(link);link.click();link.remove();URL.revokeObjectURL(url);
+    const link=document.createElement('a');link.href=url;link.download='finvigia-beneficiarios-demo.json';document.body.append(link);link.click();link.remove();URL.revokeObjectURL(url);
     setToast('Directorio y cambios exportados en formato JSON.');
   };
   return <AppShell currentPage="beneficiaries" alerts={pendingCount} onPendingClick={()=>{window.location.href='/aprobaciones';}} onSearchClick={focusSearch}>
@@ -156,7 +156,7 @@ export function BeneficiariesPage(){
         </div>
         <section className="bn-bottom-grid"><div className="bn-trace" id="actividad"><div className="bn-bottom-heading"><div><span className="bn-eyebrow">04 / TRACEABILITY</span><h2>Cada cambio deja huella<span>.</span></h2></div><span>REGISTRO LOCAL</span></div>{events.length?events.slice(0,5).map(event=><div className="bn-event" key={event.id}><span className="bn-event-symbol"><Icon name={event.action==='authorized'?'check':event.action==='blocked'?'lock':event.action==='created'?'plus':'refresh'} size={15}/></span><div><strong>{eventText[event.action]}</strong><p>{event.name} · Registro r{event.revision} · {event.actor}</p></div><time dateTime={event.occurredAt}>{new Date(event.occurredAt).toLocaleString('es-CO',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</time></div>):<div className="bn-event-empty"><Icon name="audit" size={22}/><div><strong>Sin modificaciones registradas en este navegador.</strong><p>Crear, editar o cambiar el estado de un beneficiario generará una entrada trazable.</p></div></div>}</div>
         <div className="bn-principle"><div className="bn-principle-top"><span className="bn-eyebrow">THE TRUST PRINCIPLE</span><Icon name="sparkles" size={20}/></div><div className="bn-principle-art"><div className="bn-principle-orbit"/><div className="bn-principle-orbit bn-orbit-two"/><Icon name="shield" size={40}/></div><h2>No es a quién<br/>el agente <em>quiere pagar.</em><br/>Es a quién <em>puede pagar.</em></h2><p>Los beneficiarios y sus acuerdos se verifican antes de aplicar umbrales y presupuestos. Si el destinatario no está autorizado, la evaluación se bloquea.</p><Link href="/politicas">Explorar políticas <Icon name="arrowUp" size={15}/></Link></div></section>
-        <footer className="site-footer bn-footer"><span>© 2026 BLINKA DECISION ENGINE / BENEFICIARY CONTROL</span><span>UN CONCEPTO DE ZYRA · SANDBOX / NO REAL PAYMENTS</span></footer>
+        <footer className="site-footer bn-footer"><span>© 2026 FINVIGIA DECISION ENGINE / BENEFICIARY CONTROL</span><span>UN CONCEPTO DE ZYRA · SANDBOX / NO REAL PAYMENTS</span></footer>
       </div>
     </div>
     {editing!==undefined&&<BeneficiaryEditor editing={editing} existing={items} onClose={()=>setEditing(undefined)} onSubmit={save}/>}

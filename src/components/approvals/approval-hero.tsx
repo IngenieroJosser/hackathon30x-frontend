@@ -25,6 +25,6 @@ export function ApprovalHero({ pending, eligible, onExplore }: {
       <span>HUMAN CONTROL / ACTIVE</span><div><strong>{String(pending).padStart(2,'0')}</strong><span>solicitudes<br/>pendientes</span></div>
       <small><i/>{eligible} elegibles tras reevaluación</small>
     </div>
-    <div className="ap-hero-footer"><span>BLINKA / DECISION INTELLIGENCE</span><span>HUMAN IN THE LOOP — SANDBOX</span></div>
+    <div className="ap-hero-footer"><span>FINVIGIA / DECISION INTELLIGENCE</span><span>HUMAN IN THE LOOP — SANDBOX</span></div>
   </section>;
 }

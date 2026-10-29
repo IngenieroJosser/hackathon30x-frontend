@@ -12,7 +12,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Centro de decisiones | Blinka',
+  title: 'Centro de decisiones | FinVigía',
   description: 'Agente de cuentas por pagar con políticas configurables, aprobación humana y trazabilidad. Prototipo con datos sintéticos.',
   robots: { index: false, follow: false },
 };
