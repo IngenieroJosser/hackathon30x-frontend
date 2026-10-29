@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const read=f=>readFileSync(f,'utf8');
 test('Cada módulo operativo usa el centro Neon-backed, no el almacén local',()=>{
- for(const route of ['app/page.tsx','app/politicas/page.tsx','app/beneficiarios/page.tsx','app/facturas/page.tsx','app/aprobaciones/page.tsx','app/auditoria/page.tsx','app/facturas/[id]/page.tsx']){
+ for(const route of ['app/(privado)/page.tsx','app/(privado)/politicas/page.tsx','app/(privado)/beneficiarios/page.tsx','app/(privado)/facturas/page.tsx','app/(privado)/aprobaciones/page.tsx','app/(privado)/auditoria/page.tsx','app/(privado)/facturas/[id]/page.tsx']){
   const source=read(route);assert.match(source,/workspace-screen/);assert.doesNotMatch(source,/localStorage/);
  }
  const ui=read('src/components/workspace/workspace-screen.tsx');assert.match(ui,/\/api\/workspace/);assert.match(ui,/\/api\/invoices\/intake/);

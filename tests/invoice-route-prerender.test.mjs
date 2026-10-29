@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const page = readFileSync(new URL('../app/facturas/[id]/page.tsx', import.meta.url), 'utf8');
+const page = readFileSync(new URL('../app/(privado)/facturas/[id]/page.tsx', import.meta.url), 'utf8');
 
 // Prueba estructural: protege la decisión arquitectónica. La validación real
 // del prerender se hace adicionalmente mediante `yarn build`.

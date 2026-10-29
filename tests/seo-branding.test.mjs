@@ -32,5 +32,12 @@ test('SEO: datos estructurados sin reseñas inventadas',()=>{
  const s=file('app/proyecto/page.tsx');assert.match(s,/SoftwareApplication/);assert.ok(!s.includes('aggregateRating'));assert.ok(!s.includes('offers:'));
 });
 test('SEO: acceso público no abre las rutas privadas',()=>{
- const s=file('src/components/workspace/access-gate.tsx');assert.match(s,/pathname==='\/proyecto'/);assert.match(s,/if\(isPublicProjectPage\)return <>{children}<\/>/);
+ const rootLayout=file('app/layout.tsx');
+ const privateLayout=file('app/(privado)/layout.tsx');
+ const gate=file('src/components/workspace/access-gate.tsx');
+ assert.doesNotMatch(rootLayout,/AccessGate/);
+ assert.match(privateLayout,/<AccessGate>\{children\}<\/AccessGate>/);
+ assert.doesNotMatch(gate,/usePathname|isPublicProjectPage/);
+ assert.ok(existsSync(resolve(root,'app/proyecto/page.tsx')));
+
 });

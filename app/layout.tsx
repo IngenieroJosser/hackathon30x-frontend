@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { AccessGate } from '@/components/workspace/access-gate';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/site-seo';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
@@ -25,5 +24,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  return <html lang="es-CO"><body className={inter.variable}><AccessGate>{children}</AccessGate></body></html>;
+  return <html lang="es-CO"><body className={inter.variable}>{children}</body></html>;
 }

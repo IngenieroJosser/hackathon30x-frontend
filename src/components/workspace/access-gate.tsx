@@ -1,24 +1,21 @@
 'use client';
 import {createContext,useContext,useEffect,useState,type FormEvent,type ReactNode} from 'react';
-import {usePathname} from 'next/navigation';
 import type {UserRole} from '@/server/security/roles';
 export type SessionUser={id:string;email:string;displayName:string;role:UserRole};
 const SessionContext=createContext<{user:SessionUser;signOut:()=>Promise<void>}|null>(null);
 export function useSession(){return useContext(SessionContext);}
 type Step='password'|'challenge'|'enroll'|'recovery';
 export function AccessGate({children}:{children:ReactNode}){
- const pathname=usePathname();
- const isPublicProjectPage=pathname==='/proyecto';
  const [user,setUser]=useState<SessionUser|null>(null),[checking,setChecking]=useState(true);
  const [step,setStep]=useState<Step>('password');
  const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[code,setCode]=useState('');
  const [secret,setSecret]=useState(''),[recoveryCodes,setRecoveryCodes]=useState<string[]>([]);
  const [error,setError]=useState(''),[busy,setBusy]=useState(false);
- useEffect(()=>{if(isPublicProjectPage)return;let alive=true;fetch('/api/auth/session',{cache:'no-store',credentials:'same-origin'})
+ useEffect(()=>{let alive=true;fetch('/api/auth/session',{cache:'no-store',credentials:'same-origin'})
    .then(async r=>{if(!r.ok)throw new Error('No se pudo comprobar la sesión.');return r.json();})
    .then(j=>{if(alive){setUser(j.user??null);if(j.mfaSetupRequired)setStep('enroll');else if(j.mfaChallengeRequired)setStep('challenge');}})
    .catch(()=>{if(alive)setError('No se pudo comprobar la sesión.');})
-   .finally(()=>{if(alive)setChecking(false);});return()=>{alive=false;};},[isPublicProjectPage]);
+   .finally(()=>{if(alive)setChecking(false);});return()=>{alive=false;};},[]);
  async function json(path:string,payload:unknown){
   const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',cache:'no-store',body:JSON.stringify(payload)});
   const result=await response.json();if(!response.ok)throw new Error(result.error??'Operación no disponible.');return result;
@@ -46,7 +43,6 @@ export function AccessGate({children}:{children:ReactNode}){
   catch(e){setError(e instanceof Error?e.message:'Error en la sesión.');}finally{setBusy(false);}
  }
  async function signOut(){setBusy(true);try{const r=await fetch('/api/auth/session',{method:'DELETE',credentials:'same-origin'});if(!r.ok)throw new Error('No fue posible cerrar sesión.');setUser(null);setSecret('');setRecoveryCodes([]);window.location.assign('/');}catch(e){setError(e instanceof Error?e.message:'Error al salir.');}finally{setBusy(false);}}
- if(isPublicProjectPage)return <>{children}</>;
  return <SessionContext.Provider value={user?{user,signOut}:null}>
    {checking&&<main className="ws-auth"><div className="ws-auth-panel"><strong>FINVIGIA<span>.</span> DECISION ENGINE</strong><p>Comprobando sesión personal en Neon…</p></div></main>}
    {!checking&&!user&&<main className="ws-auth"><video autoPlay loop muted playsInline poster="/metal-human.jpg" aria-hidden="true"><source src="/metal-human.mp4" type="video/mp4"/></video><div className="ws-auth-panel"><span className="ws-eyebrow">FINVIGIA / SECURITY · ACCESO CON MFA</span><h1>Inteligencia con<br/><em>control.</em></h1>
