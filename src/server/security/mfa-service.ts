@@ -47,12 +47,15 @@ export async function finishEnrollment(userId:string,sessionId:string,code:strin
 export async function finishLogin(request:NextRequest,code:string){
  const raw=readMfaChallenge(request);if(!raw)throw new WorkflowError('Desafío MFA inexistente.',401);
  const db=getPrisma();const challenge=await db.mfaLoginChallenge.findUnique({where:{tokenHash:tokenHash(raw)},include:{user:true}});
- if(!challenge||challenge.consumedAt||challenge.expiresAt<=new Date()||challenge.attempts>=5||!challenge.user.isActive||!challenge.user.mfaEnabled||!challenge.user.mfaSecret)throw new WorkflowError('Desafío MFA inválido o caducado.',401);
+ // Preserve the validated encrypted secret in a local constant: Prisma models it as nullable.
+ // Never fall back to an empty value or bypass the second factor.
+ const encryptedSecret=challenge?.user.mfaSecret;
+ if(!challenge||challenge.consumedAt||challenge.expiresAt<=new Date()||challenge.attempts>=5||!challenge.user.isActive||!challenge.user.mfaEnabled||!encryptedSecret)throw new WorkflowError('Desafío MFA inválido o caducado.',401);
  const claimed=await db.mfaLoginChallenge.updateMany({where:{id:challenge.id,consumedAt:null,attempts:{lt:5},expiresAt:{gt:new Date()}},data:{attempts:{increment:1}}});
  if(claimed.count!==1)throw new WorkflowError('Desafío MFA agotado.',401);
  const user=challenge.user;
  const isTotp=/^\d{6}$/.test(code);
- const totpStep=isTotp?matchTotpStep(unseal(user.mfaSecret,'BLINKA_MFA_KEY'),code,Date.now(),Number(user.mfaLastStep)):null;
+ const totpStep=isTotp?matchTotpStep(unseal(encryptedSecret,'BLINKA_MFA_KEY'),code,Date.now(),Number(user.mfaLastStep)):null;
  const digest= !isTotp && /^[A-Fa-f\d\-]{24,30}$/.test(code)?recoveryDigest(code):null;
  return db.$transaction(async tx=>{
   let accepted=false;
