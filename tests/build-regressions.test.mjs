@@ -15,7 +15,7 @@ test('Auth: guard muestra el segmento en prerender pero no consulta Neon sin ses
   const gate = read('src/components/workspace/access-gate.tsx');
   const screen = read('src/components/workspace/workspace-screen.tsx');
   assert.match(gate, /<div hidden=\{checking\|\|!user\}/);
-  assert.match(screen, /useEffect\(\(\)=>\{if\(!actor\)return;void reload/);
+  assert.match(screen, /useEffect\(\(\)=>\{if\(!actor\)return;const frame=requestAnimationFrame/);
 });
 
 test('Passwords: opciones scrypt definidas en wrapper async', () => {

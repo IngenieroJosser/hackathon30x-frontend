@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppShell } from '@/components/layout/app-shell';
 import { Icon } from '@/components/ui/icon';
@@ -68,18 +69,21 @@ export function ApprovalsPage(){
     setInvoices(getInvoices());setEvents(getInvoiceEvents());setPolicy(getDemoPolicy());setBeneficiaries(getDemoBeneficiaries());setHydrated(true);
   },[]);
   useEffect(()=>{
-    reload();
-    const params=new URLSearchParams(window.location.search);
-    const requested=params.get('invoice');
-    if(requested && getInvoices().some(item=>item.id===requested)){
-      setSelectedId(requested);
-      if(getInvoices().find(item=>item.id===requested)?.reviewedBy)setTab('resolved');
-    }
+    const frame=requestAnimationFrame(()=>{
+      reload();
+      const params=new URLSearchParams(window.location.search);
+      const requested=params.get('invoice');
+      if(requested && getInvoices().some(item=>item.id===requested)){
+        setSelectedId(requested);
+        if(getInvoices().find(item=>item.id===requested)?.reviewedBy)setTab('resolved');
+      }
+    });
     window.addEventListener(INVOICE_UPDATED_EVENT,reload);
     window.addEventListener(POLICY_UPDATED_EVENT,reload);
     window.addEventListener(REGISTRY_EVENT,reload);
     window.addEventListener('storage',reload);
     return()=>{
+      cancelAnimationFrame(frame);
       window.removeEventListener(INVOICE_UPDATED_EVENT,reload);window.removeEventListener(POLICY_UPDATED_EVENT,reload);window.removeEventListener(REGISTRY_EVENT,reload);window.removeEventListener('storage',reload);
     };
   },[reload]);
@@ -99,10 +103,8 @@ export function ApprovalsPage(){
     const term=search.trim().toLowerCase();
     return byTab.filter(r=>`${r.invoice.number} ${r.invoice.vendor} ${r.invoice.country} ${r.invoice.ruleCode} ${r.currentRule}`.toLowerCase().includes(term)).sort((a,b)=>tab==='resolved'?(b.invoice.reviewedAt??'').localeCompare(a.invoice.reviewedAt??''):(a.invoice.dueDate||'9999').localeCompare(b.invoice.dueDate||'9999'));
   },[rows,search,tab]);
-  useEffect(()=>{
-    if(hydrated && !sorted.some(row=>row.invoice.id===selectedId)){setSelectedId(sorted[0]?.invoice.id??'');}
-  },[hydrated,sorted,selectedId]);
-  const selected=rows.find(r=>r.invoice.id===selectedId)??null;
+  const displayedId=hydrated && !sorted.some(row=>row.invoice.id===selectedId)?sorted[0]?.invoice.id??'':selectedId;
+  const selected=rows.find(r=>r.invoice.id===displayedId)??null;
   const beneficiary=selected?beneficiaries.find(b=>normalName(b.name)===normalName(selected.invoice.vendor)):undefined;
   const selectedEvents=selected?events.filter(e=>e.invoiceId===selected.invoice.id):[];
   const select=(id:string)=>{setSelectedId(id);if(window.innerWidth<=990)detailRef.current?.scrollIntoView({behavior:'smooth',block:'start'});};
@@ -128,7 +130,7 @@ export function ApprovalsPage(){
           <SummaryTile label="REQUIEREN CORRECCIÓN" value={hydrated?counts.blocked:'—'} caption="No se permite autorizar" icon="shield" tone="ap-stat-attention"/>
           <SummaryTile label="DECISIONES HUMANAS" value={hydrated?counts.resolved:'—'} caption="Resoluciones registradas" icon="audit"/>
         </div>
-        <div className="ap-alertline"><Icon name="shield" size={19}/><div><strong>La aprobación humana no es una excepción a las políticas.</strong><span>Antes de aceptar, el agente vuelve a validar límite absoluto, acuerdos, presupuesto, duplicados, moneda y beneficiario.</span></div><a href="/politicas">Ver reglas <Icon name="arrowUp" size={14}/></a></div>
+        <div className="ap-alertline"><Icon name="shield" size={19}/><div><strong>La aprobación humana no es una excepción a las políticas.</strong><span>Antes de aceptar, el agente vuelve a validar límite absoluto, acuerdos, presupuesto, duplicados, moneda y beneficiario.</span></div><Link href="/politicas">Ver reglas <Icon name="arrowUp" size={14}/></Link></div>
         {notice&&<div role="status" className={`ap-notice ap-notice-${notice.type}`}><Icon name={notice.type==='error'?'alert':'check'} size={17}/><span>{notice.text}</span><button type="button" onClick={()=>setNotice(null)} aria-label="Cerrar aviso"><Icon name="close" size={16}/></button></div>}
         <div className="ap-section-heading" ref={listRef} id="bandeja"><div><span className="ap-eyebrow">02 / REVIEW QUEUE</span><h2>Bandeja de control</h2></div><span className="ap-section-total">{counts.pending} casos abiertos <i/> {policy.version}</span></div>
         <div className="ap-workspace">
@@ -136,14 +138,14 @@ export function ApprovalsPage(){
             <div className="ap-inbox-header"><div><span className="ap-small-label">INBOX / TRANSACTION REVIEW</span><h3 id="ap-inbox-title">Solicitudes <span>{counts.pending}</span></h3></div><Icon name="panel" size={21}/></div>
             <div className="ap-toolbar"><div className="ap-tabs" role="group" aria-label="Filtrar solicitudes">{tabs.map(t=><button type="button" key={t.value} className={tab===t.value?'ap-tab-active':''} onClick={()=>setTab(t.value)} aria-pressed={tab===t.value}>{t.label}<small>{counts[t.value]}</small></button>)}</div><label className="ap-search"><Icon name="search" size={17}/><input ref={searchRef} aria-label="Buscar solicitud por proveedor o factura" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar proveedor, número o regla…"/></label></div>
             <div className="ap-request-list">{sorted.map(r=><DecisionRow key={r.invoice.id} row={r} selected={selectedId===r.invoice.id} onSelect={()=>select(r.invoice.id)}/>)}{sorted.length===0&&<div className="ap-empty"><Icon name="check" size={26}/><strong>Sin resultados en esta vista.</strong><span>Cambia el filtro o busca otra factura.</span></div>}</div>
-            <div className="ap-inbox-bottom"><span><i/> Datos sintéticos, sincronizados con el dashboard.</span><a href="/facturas">Ver todas las facturas <Icon name="arrow" size={14}/></a></div>
+            <div className="ap-inbox-bottom"><span><i/> Datos sintéticos, sincronizados con el dashboard.</span><Link href="/facturas">Ver todas las facturas <Icon name="arrow" size={14}/></Link></div>
           </section>
           <section className="ap-inspector" ref={detailRef} aria-labelledby="ap-inspector-title">{selected?
             <>
               <div className="ap-inspector-head"><div><span className="ap-small-label">03 / HUMAN DECISION</span><h3 id="ap-inspector-title">Expediente <em>{selected.invoice.number}</em></h3></div><StatusPill status={selected.invoice.status}/></div>
               <div className="ap-inspector-total"><span>IMPORTE SOLICITADO</span><strong>{selected.invoice.currency==='USD'?money(selected.invoice.amount):selected.invoice.amount.toLocaleString('en-US')}<small> {selected.invoice.currency}</small></strong><p>Vencimiento {selected.invoice.dueDate?shortDate(selected.invoice.dueDate):'por verificar'} <span>·</span> {selected.invoice.source}</p></div>
-              <div className="ap-inspector-block"><div className="ap-inspector-block-heading"><span>01</span><h4>Beneficiario y acuerdo</h4><a href="/beneficiarios"><Icon name="external" size={14}/></a></div><dl className="ap-facts"><div><dt>Beneficiario</dt><dd>{selected.invoice.vendor}</dd></div><div><dt>Estado vigente</dt><dd className={beneficiary?.status==='authorized'?'ap-fact-good':'ap-fact-warn'}>{beneficiary?.status==='authorized'?'Autorizado':beneficiary?.status==='review'?'En revisión':beneficiary?.status==='blocked'?'Bloqueado':'No registrado'}</dd></div><div><dt>Acuerdo</dt><dd>{beneficiary?.agreementReference??'Sin referencia'}</dd></div><div><dt>Tope acordado</dt><dd>{beneficiary?money(beneficiary.agreementLimit):'No configurado'}</dd></div></dl></div>
-              <div className="ap-inspector-block"><div className="ap-inspector-block-heading"><span>02</span><h4>Política y control</h4><a href="/politicas"><Icon name="external" size={14}/></a></div><dl className="ap-facts"><div><dt>Umbral autónomo</dt><dd>{money(policy.autonomousLimit)}</dd></div><div><dt>Límite absoluto</dt><dd>{money(policy.hardLimit)}</dd></div><div><dt>Política vigente</dt><dd>{policy.version}</dd></div><div><dt>Resultado original</dt><dd>{selected.invoice.ruleCode}</dd></div>{selected.invoice.status==='pending'&&<div><dt>Control actual</dt><dd>{selected.currentRule}</dd></div>}</dl>
+              <div className="ap-inspector-block"><div className="ap-inspector-block-heading"><span>01</span><h4>Beneficiario y acuerdo</h4><Link href="/beneficiarios"><Icon name="external" size={14}/></Link></div><dl className="ap-facts"><div><dt>Beneficiario</dt><dd>{selected.invoice.vendor}</dd></div><div><dt>Estado vigente</dt><dd className={beneficiary?.status==='authorized'?'ap-fact-good':'ap-fact-warn'}>{beneficiary?.status==='authorized'?'Autorizado':beneficiary?.status==='review'?'En revisión':beneficiary?.status==='blocked'?'Bloqueado':'No registrado'}</dd></div><div><dt>Acuerdo</dt><dd>{beneficiary?.agreementReference??'Sin referencia'}</dd></div><div><dt>Tope acordado</dt><dd>{beneficiary?money(beneficiary.agreementLimit):'No configurado'}</dd></div></dl></div>
+              <div className="ap-inspector-block"><div className="ap-inspector-block-heading"><span>02</span><h4>Política y control</h4><Link href="/politicas"><Icon name="external" size={14}/></Link></div><dl className="ap-facts"><div><dt>Umbral autónomo</dt><dd>{money(policy.autonomousLimit)}</dd></div><div><dt>Límite absoluto</dt><dd>{money(policy.hardLimit)}</dd></div><div><dt>Política vigente</dt><dd>{policy.version}</dd></div><div><dt>Resultado original</dt><dd>{selected.invoice.ruleCode}</dd></div>{selected.invoice.status==='pending'&&<div><dt>Control actual</dt><dd>{selected.currentRule}</dd></div>}</dl>
                 {(selected.policyChanged||selected.vendorChanged)&&selected.invoice.status==='pending'&&<div className="ap-change-warning"><Icon name="alert" size={15}/><span>{selected.policyChanged?'La política se actualizó desde la decisión inicial. ':''}{selected.vendorChanged?'El beneficiario cambió desde la decisión inicial. ':''}Se utiliza la configuración vigente al resolver.</span></div>}
               </div>
               <div className="ap-inspector-block"><div className="ap-inspector-block-heading"><span>03</span><h4>Evaluación de seguridad</h4><Icon name="shield" size={16}/></div>
@@ -151,7 +153,7 @@ export function ApprovalsPage(){
                 <div className="ap-checks">{selected.invoice.checks.map((check,i)=><div key={`${check}-${i}`}><Icon name="check" size={14}/>{check}</div>)}</div>
               </div>
               {selected.invoice.reviewedBy&&<div className="ap-inspector-block ap-resolution"><div className="ap-inspector-block-heading"><span>04</span><h4>Responsable y evidencia</h4></div><dl className="ap-facts"><div><dt>Revisó</dt><dd>{selected.invoice.reviewedBy}</dd></div><div><dt>Fecha</dt><dd>{prettyDate(selected.invoice.reviewedAt)}</dd></div><div><dt>Justificación</dt><dd>{selected.invoice.reviewNote??'No registrada en fixture inicial'}</dd></div></dl></div>}
-              <div className="ap-inspector-actions"><a className="ap-case-link" href={`/facturas/${encodeURIComponent(selected.invoice.id)}`}>Abrir expediente completo <Icon name="arrowUp" size={15}/></a><button type="button" className="ap-export" onClick={()=>downloadReview(selected.invoice,selectedEvents,policy)}><Icon name="download" size={16}/> Exportar evidencia JSON</button>
+              <div className="ap-inspector-actions"><Link className="ap-case-link" href={`/facturas/${encodeURIComponent(selected.invoice.id)}`}>Abrir expediente completo <Icon name="arrowUp" size={15}/></Link><button type="button" className="ap-export" onClick={()=>downloadReview(selected.invoice,selectedEvents,policy)}><Icon name="download" size={16}/> Exportar evidencia JSON</button>
                 {selected.invoice.status==='pending'&&<div className="ap-action-buttons"><button type="button" className="ap-reject" onClick={()=>setDialog('reject')}><Icon name="cross" size={17}/> Rechazar</button><button type="button" className="ap-primary" disabled={!selected.eligible} onClick={()=>setDialog('approve')} title={!selected.eligible?selected.reasons.join(' '):'Autorizar solo en simulación'}><Icon name="check" size={17}/> Aprobar en sandbox</button></div>}
                 {selected.invoice.status==='pending'&&!selected.eligible&&<p className="ap-action-help"><Icon name="lock" size={14}/> Corrige primero la causa desde el expediente, el beneficiario o las políticas. Rechazar siempre está disponible.</p>}
                 <small>Revisor ficticio: Admin Finance · Sandbox. No hay autenticación real.</small>
@@ -160,7 +162,7 @@ export function ApprovalsPage(){
             <div className="ap-no-selection"><Icon name="receipt" size={33}/><h3>Selecciona una solicitud.</h3><p>Consulta los controles antes de tomar una decisión.</p></div>}
           </section>
         </div>
-        <section className="ap-history" aria-labelledby="ap-history-title"><div className="ap-section-heading"><div><span className="ap-eyebrow">04 / ACCOUNTABILITY</span><h2 id="ap-history-title">Decisiones con responsable.</h2></div><a className="ap-history-link" href="/facturas">Consultar expedientes <Icon name="arrowUp" size={15}/></a></div><div className="ap-history-grid">{resolved.slice(0,4).map(item=><button type="button" key={item.invoice.id} onClick={()=>{setSelectedId(item.invoice.id);setTab('resolved');scrollQueue();}} className="ap-history-entry"><span className={`ap-history-icon ${item.invoice.status==='authorized'?'ap-success':'ap-danger-tone'}`}><Icon name={item.invoice.status==='authorized'?'check':'cross'} size={18}/></span><div><strong>{item.invoice.vendor}</strong><span>{item.invoice.number} · {item.invoice.reviewedBy}</span><small>{item.invoice.reviewNote??'Motivo no disponible'}</small></div><time>{prettyDate(item.invoice.reviewedAt)}</time></button>)}{resolved.length===0&&<div className="ap-history-empty"><Icon name="clock" size={23}/><div><strong>Aún no hay resoluciones humanas.</strong><span>Cuando apruebes o rechaces una solicitud, aparecerá aquí con su responsable y motivo.</span></div></div>}</div></section>
+        <section className="ap-history" aria-labelledby="ap-history-title"><div className="ap-section-heading"><div><span className="ap-eyebrow">04 / ACCOUNTABILITY</span><h2 id="ap-history-title">Decisiones con responsable.</h2></div><Link className="ap-history-link" href="/facturas">Consultar expedientes <Icon name="arrowUp" size={15}/></Link></div><div className="ap-history-grid">{resolved.slice(0,4).map(item=><button type="button" key={item.invoice.id} onClick={()=>{setSelectedId(item.invoice.id);setTab('resolved');scrollQueue();}} className="ap-history-entry"><span className={`ap-history-icon ${item.invoice.status==='authorized'?'ap-success':'ap-danger-tone'}`}><Icon name={item.invoice.status==='authorized'?'check':'cross'} size={18}/></span><div><strong>{item.invoice.vendor}</strong><span>{item.invoice.number} · {item.invoice.reviewedBy}</span><small>{item.invoice.reviewNote??'Motivo no disponible'}</small></div><time>{prettyDate(item.invoice.reviewedAt)}</time></button>)}{resolved.length===0&&<div className="ap-history-empty"><Icon name="clock" size={23}/><div><strong>Aún no hay resoluciones humanas.</strong><span>Cuando apruebes o rechaces una solicitud, aparecerá aquí con su responsable y motivo.</span></div></div>}</div></section>
         <footer className="ap-footer"><span>BLINKA DECISION ENGINE <i/> BY ZYRA</span><span>HUMAN OVERSIGHT / DEMO ONLY — NO REAL PAYMENTS</span></footer>
       </div>
       {dialog&&selected&&<ApprovalConfirmation key={`${selected.invoice.id}-${dialog}`} invoice={selected.invoice} intent={dialog} eligible={selected.eligible} onClose={closeDialog} onConfirm={finalize} busy={saving}/>} 

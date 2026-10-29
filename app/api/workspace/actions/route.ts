@@ -1,3 +1,4 @@
+import { readJsonBounded } from '@/server/security/request-body';
 import { NextRequest,NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requirePermission } from '@/server/security/auth';
@@ -12,7 +13,7 @@ const schema=z.discriminatedUnion('action',[
 ]);
 export async function POST(request:NextRequest){
  const {actor,denied}=await requirePermission(request,'manage_policy');if(denied)return denied;
- try{const data=schema.parse(await request.json());let result;
+ try{const data=schema.parse(await readJsonBounded(request,16384));let result;
   switch(data.action){case 'publish_policy':result=await publishPolicy(data.payload,actor!.id);break;
    case 'save_vendor':result=await saveVendor(data.payload,actor!.id,data.id);break;
    case 'vendor_status':result=await changeVendorStatus(data.id,data.status,actor!.id);break;}

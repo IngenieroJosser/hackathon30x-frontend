@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppShell } from '@/components/layout/app-shell';
@@ -58,11 +59,11 @@ function AuditHero({events,unverified,onExplore}:{events:number;unverified:numbe
     <video className="au-hero-video" autoPlay muted playsInline loop preload="metadata" poster="/metal-human.jpg" aria-hidden="true"><source src="/metal-human.mp4" type="video/mp4"/></video>
     <div className="au-hero-shade"/><div className="au-hero-mesh" aria-hidden="true"/><div className="au-hero-ring" aria-hidden="true"/>
     <div className="au-hero-inner">
-      <nav className="au-breadcrumb" aria-label="Ruta de navegación"><a href="/">WORKSPACE</a><Icon name="chevron" size={12}/><span>AUDITORÍA</span></nav>
+      <nav className="au-breadcrumb" aria-label="Ruta de navegación"><Link href="/">WORKSPACE</Link><Icon name="chevron" size={12}/><span>AUDITORÍA</span></nav>
       <div className="au-overline"><span className="au-live"/> 06 / DECISION TRACEABILITY <i/> CONTROL Y EXPLICABILIDAD</div>
       <h1 id="au-hero-title">Nada se decide<br/><em>sin dejar una razón.</em></h1>
       <p>Explora las decisiones del agente, reconstruye los controles aplicados y descubre quién intervino, cuándo y bajo qué versión de política.</p>
-      <div className="au-hero-ctas"><button className="au-button-primary" type="button" onClick={onExplore}>Explorar trazabilidad <Icon name="arrow" size={17}/></button><a href="/facturas" className="au-button-plain">Ir al centro documental <Icon name="arrowUp" size={15}/></a></div>
+      <div className="au-hero-ctas"><button className="au-button-primary" type="button" onClick={onExplore}>Explorar trazabilidad <Icon name="arrow" size={17}/></button><Link href="/facturas" className="au-button-plain">Ir al centro documental <Icon name="arrowUp" size={15}/></Link></div>
     </div>
     <div className="au-hero-diagnostic"><div className="au-diagnostic-top"><span>TRACE / SANDBOX</span><Icon name="audit" size={17}/></div><strong>{String(events).padStart(2,'0')}<small>EVENTOS</small></strong><div className="au-diagnostic-bottom"><span className="au-pulse"/> {unverified} expediente(s) de fixture sin historial</div></div>
     <div className="au-hero-bottom"><span>BLINKA / FINANCIAL DECISION INTELLIGENCE</span><span>LOCAL EVIDENCE — DEMO ONLY</span></div>
@@ -88,7 +89,7 @@ function EvidenceDetail({entry,activeVersion}:{entry:AuditEntry;activeVersion:st
     </>}
     {entry.policyEvent&&<><div className="au-detail-heading"><span>01</span><h4>Antes y después</h4></div><div className="au-policy-changes">{entry.policyEvent.changes.map(change=><div key={change.field}><span>{policyLabels[change.field]??change.field}</span><div><s>{money(change.previous)}</s><Icon name="arrow" size={15}/><strong>{money(change.next)}</strong></div></div>)}</div><p className="au-context-note"><Icon name="info" size={15}/> Los cambios se consultan desde el historial de políticas publicado en este navegador.</p></>}
     {entry.registryEvent&&<><div className="au-detail-heading"><span>01</span><h4>Control del beneficiario</h4></div><div className="au-fact-rows"><div><span>ID del registro</span><strong>{entry.registryEvent.beneficiaryId}</strong></div><div><span>Revisión</span><strong>r{entry.registryEvent.revision}</strong></div><div><span>Estado anterior</span><strong>{entry.registryEvent.previousStatus??'No informado'}</strong></div><div><span>Estado posterior</span><strong>{entry.registryEvent.nextStatus??'No informado'}</strong></div></div></>}
-    {inv&&<><div className="au-detail-heading"><span>02</span><h4>Factura asociada</h4></div><div className="au-fact-rows"><div><span>Beneficiario</span><strong>{inv.vendor}</strong></div><div><span>Importe</span><strong>{inv.currency==='USD'?money(inv.amount):`${inv.amount.toLocaleString('en-US')} ${inv.currency}`}</strong></div><div><span>Estado actual</span><strong>{inv.status}</strong></div><div><span>Vence</span><strong>{inv.dueDate||'Sin fecha'}</strong></div></div><p className="au-context-note"><Icon name="info" size={15}/> Los datos de esta sección reflejan el expediente actual; el snapshot anterior, si existe, conserva el contexto de la decisión histórica.</p><a className="au-detail-link" href={`/facturas/${encodeURIComponent(inv.id)}`}>Abrir expediente <Icon name="arrowUp" size={16}/></a></>}
+    {inv&&<><div className="au-detail-heading"><span>02</span><h4>Factura asociada</h4></div><div className="au-fact-rows"><div><span>Beneficiario</span><strong>{inv.vendor}</strong></div><div><span>Importe</span><strong>{inv.currency==='USD'?money(inv.amount):`${inv.amount.toLocaleString('en-US')} ${inv.currency}`}</strong></div><div><span>Estado actual</span><strong>{inv.status}</strong></div><div><span>Vence</span><strong>{inv.dueDate||'Sin fecha'}</strong></div></div><p className="au-context-note"><Icon name="info" size={15}/> Los datos de esta sección reflejan el expediente actual; el snapshot anterior, si existe, conserva el contexto de la decisión histórica.</p><Link className="au-detail-link" href={`/facturas/${encodeURIComponent(inv.id)}`}>Abrir expediente <Icon name="arrowUp" size={16}/></Link></>}
     <div className="au-evidence-disclaimer"><Icon name="lock" size={16}/><span>Entorno de simulación. Evidencia local editable; no existe firma digital ni almacenamiento inmutable.</span></div>
   </div>;
 }
@@ -110,12 +111,12 @@ export function AuditPage(){
     setInvoices(getInvoices());setInvoiceEvents(getInvoiceEvents());setPolicyEvents(getDemoPolicyHistory());setRegistryEvents(getRegistryEvents());setPolicy(getDemoPolicy());
   },[]);
   useEffect(()=>{
-    reload();
+    const frame=requestAnimationFrame(reload);
     window.addEventListener(INVOICE_UPDATED_EVENT,reload);
     window.addEventListener(POLICY_UPDATED_EVENT,reload);
     window.addEventListener(REGISTRY_EVENT,reload);
     window.addEventListener('storage',reload);
-    return()=>{window.removeEventListener(INVOICE_UPDATED_EVENT,reload);window.removeEventListener(POLICY_UPDATED_EVENT,reload);window.removeEventListener(REGISTRY_EVENT,reload);window.removeEventListener('storage',reload);};
+    return()=>{cancelAnimationFrame(frame);window.removeEventListener(INVOICE_UPDATED_EVENT,reload);window.removeEventListener(POLICY_UPDATED_EVENT,reload);window.removeEventListener(REGISTRY_EVENT,reload);window.removeEventListener('storage',reload);};
   },[reload]);
   const entries=useMemo(()=>buildAuditTimeline(invoices,invoiceEvents,policyEvents,registryEvents),[invoices,invoiceEvents,policyEvents,registryEvents]);
   const coverage=useMemo(()=>auditCoverage(invoices,invoiceEvents),[invoices,invoiceEvents]);
@@ -140,7 +141,7 @@ export function AuditPage(){
       <div className="au-container">
         <div className="au-section-intro"><div><span className="au-eyebrow"><i/> 01 / DECISION OBSERVABILITY</span><h2>La historia detrás <em>de cada decisión.</em></h2><p>No basta con saber qué decidió el agente. Es indispensable poder explicar qué regla se aplicó, qué información se utilizó y qué persona intervino.</p></div><span className="au-demo-flag"><i/> SIMULACIÓN · NO HAY PAGOS REALES</span></div>
         <div className="au-stat-grid"><AuditStat label="EVENTOS REGISTRADOS" value={loggedCount} note="Cambios guardados en este navegador" icon="audit" accent/><AuditStat label="RESOLUCIONES HUMANAS" value={reviewCount} note="Aprobaciones y rechazos" icon="users"/><AuditStat label="VERSIONES PUBLICADAS" value={policyCount} note="Cambios explícitos de políticas" icon="shield"/><AuditStat label="COBERTURA DOCUMENTAL" value={`${coverage.percent}%`} note={`${coverage.covered} de ${coverage.total} con eventos`} icon="alert"/></div>
-        <div className="au-quality-banner"><Icon name="info" size={20}/><div><strong>Transparencia de evidencia</strong><p>{coverage.missing>0?`${coverage.missing} facturas precargadas no conservan un historial de eventos. Se presentan como estados iniciales, no como decisiones verificadas.`:'Todos los expedientes actuales cuentan con al menos un evento local.'} El navegador no proporciona almacenamiento antifraude ni inmutabilidad.</p></div><a href="/facturas">Procesar facturas <Icon name="arrowUp" size={15}/></a></div>
+        <div className="au-quality-banner"><Icon name="info" size={20}/><div><strong>Transparencia de evidencia</strong><p>{coverage.missing>0?`${coverage.missing} facturas precargadas no conservan un historial de eventos. Se presentan como estados iniciales, no como decisiones verificadas.`:'Todos los expedientes actuales cuentan con al menos un evento local.'} El navegador no proporciona almacenamiento antifraude ni inmutabilidad.</p></div><Link href="/facturas">Procesar facturas <Icon name="arrowUp" size={15}/></Link></div>
         <section className="au-workspace" id="au-timeline" ref={timelineRef} aria-labelledby="au-workspace-heading">
           <div className="au-workspace-top"><div><span className="au-eyebrow">02 / EVENT STREAM</span><h2 id="au-workspace-heading">Bitácora de <em>decisiones.</em></h2><p>Eventos de facturación, aprobación, política y beneficiarios, reunidos por orden temporal.</p></div><div className="au-workspace-actions"><button type="button" onClick={()=>exportCsv(filtered)} className="au-export-plain"><Icon name="file" size={16}/> CSV</button><button type="button" onClick={jsonExport} className="au-export-main"><Icon name="download" size={16}/> Exportar JSON</button></div></div>
           <div className="au-tools"><div className="au-search"><Icon name="search" size={17}/><input ref={searchRef} aria-label="Buscar eventos de auditoría" value={search} onChange={e=>onChangeSearch(e.target.value)} placeholder="Buscar factura, proveedor, regla, actor…"/></div><div className="au-select-wrap"><Icon name="filter" size={16}/><select aria-label="Filtrar eventos" value={category} onChange={e=>onChangeCategory(e.target.value as AuditCategory|'all')}>{categories.map(c=><option value={c.value} key={c.value}>{c.label}</option>)}</select><Icon name="chevron" size={13}/></div></div>

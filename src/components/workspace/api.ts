@@ -1,6 +1,7 @@
 export type WsPolicy={id:string;version:number;autonomousLimit:string;hardLimit:string;monthlyBudget:string;currency:string};
 export type WsAgreement={id:string;reference:string;amountLimit:string;currency:string;version:number};
-export type WsVendor={id:string;name:string;country:string;category:string;contactEmail:string|null;status:'AUTHORIZED'|'REVIEW'|'BLOCKED';revision:number;agreements:WsAgreement[]};
+export type WsBankAccount={status:string;maskedAccount:string;revision:number;realBankConfirmed:boolean;verifiedAt:string|null;verifiedVendorRevision:number|null};
+export type WsVendor={bankAccount:WsBankAccount|null;id:string;name:string;country:string;category:string;contactEmail:string|null;status:'AUTHORIZED'|'REVIEW'|'BLOCKED';revision:number;agreements:WsAgreement[]};
 export type WsExtraction={id:string;method:string;modelName:string|null;payload:{number?:string;vendor?:string;amount?:number|null;currency?:string;dueDate?:string;issueDate?:string;description?:string;warnings?:string[];evidence?:Record<string,string>};warnings:string[];evidence:Record<string,string>};
 export type WsDecision={id:string;outcome:'AUTHORIZED'|'BLOCKED'|'ESCALATED';ruleCode:string;reason:string;checks:string[];evaluatedAt:string;policySnapshot:Record<string,unknown>;inputSnapshot:Record<string,unknown>;beneficiarySnapshot:Record<string,unknown>|null};
 export type WsInvoice={id:string;externalNumber:string|null;vendorName:string|null;amount:string|null;currency:string|null;issueDate:string|null;dueDate:string|null;description:string|null;status:string;source:string;createdAt:string;verifiedAt:string|null;document?:{fileName:string;mimeType:string;bytes:number;sha256:string}|null;extractions:WsExtraction[];decisions:WsDecision[]};

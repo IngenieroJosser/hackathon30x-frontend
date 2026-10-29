@@ -73,7 +73,7 @@ export function NotFoundExperience() {
 
       <section className="nf-main" aria-labelledby="nf-heading">
         <div className="nf-copy">
-          <div className="nf-eyebrow"><span className="nf-dash" />EXCEPTION / NAVIGATION_404 <span className="nf-eyebrow-id">// 001</span></div>
+          <div className="nf-eyebrow"><span className="nf-dash" />EXCEPTION / NAVIGATION_404 <span className="nf-eyebrow-id">{"// 001"}</span></div>
           <div className="nf-number" aria-label="Error 404">4<span>0</span>4<span className="nf-number-cursor" aria-hidden="true">_</span></div>
           <p className="nf-kicker">ERROR DE NAVEGACIÓN <span>—</span> 404</p>
           <h1 id="nf-heading">Esta ruta no existe.<br /><em>El control permanece.</em></h1>

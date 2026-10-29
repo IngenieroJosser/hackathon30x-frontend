@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {saveExtractedDocument,getInvoices,getInvoiceEvents,verifyAndEvaluate,resolveInvoice,hasDemoBatch,runDemoBatch,INVOICE_STORE_KEY,INVOICE_EVENT_KEY} from '../src/lib/invoice-registry.ts';
+import {saveExtractedDocument,getInvoices,getInvoiceEvents,verifyAndEvaluate,resolveInvoice,hasDemoBatch,runDemoBatch} from '../src/lib/invoice-registry.ts';
 import {sanitizeDraft} from '../src/lib/invoice-processing.ts';
 
 const data=new Map();

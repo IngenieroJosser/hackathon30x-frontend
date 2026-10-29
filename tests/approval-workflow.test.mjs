@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {assessHumanApproval,validateReviewNote} from '../src/lib/approval-workflow.ts';
 import {DEMO_BENEFICIARIES,REGISTRY_KEY} from '../src/lib/beneficiary-registry.ts';
 import {DEMO_POLICY,INITIAL_INVOICES} from '../src/lib/mock-data.ts';
-import {getInvoices,resolveInvoice,getInvoiceEvents,INVOICE_STORE_KEY,INVOICE_EVENT_KEY} from '../src/lib/invoice-registry.ts';
+import {getInvoices,resolveInvoice,getInvoiceEvents,INVOICE_STORE_KEY} from '../src/lib/invoice-registry.ts';
 
 const data=new Map();
 const storage={getItem(key){return data.get(key)??null;},setItem(key,value){data.set(key,String(value));},removeItem(key){data.delete(key);}};

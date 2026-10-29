@@ -98,6 +98,12 @@ model AppUser {
   organization    Organization      @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   resolvedApprovals ApprovalRequest[] @relation("ApprovalReviewer")
   auditEvents     AuditEvent[]
+  mfaEnabled      Boolean          @default(false)
+  mfaSecret       String?          @db.Text
+  mfaPendingSecret String?         @db.Text
+  mfaLastStep     BigInt           @default(-1)
+  mfaRecoveryCodes MfaRecoveryCode[]
+  mfaChallenges   MfaLoginChallenge[]
   @@unique([organizationId, email])
   @@index([organizationId, role])
 }
@@ -109,6 +115,7 @@ model AuthSession {
   createdAt   DateTime  @default(now())
   expiresAt   DateTime
   revokedAt   DateTime?
+  mfaVerified Boolean   @default(false)
   user        AppUser   @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([userId, expiresAt])
   @@index([expiresAt])
@@ -129,6 +136,7 @@ model Vendor {
   organization    Organization      @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   agreements      VendorAgreement[]
   invoices        Invoice[]
+  bankAccount     VendorBankAccount?
   @@unique([organizationId, normalizedName])
   @@index([organizationId, status])
 }
@@ -311,4 +319,57 @@ model AuditEvent {
   @@index([organizationId, occurredAt])
   @@index([invoiceId, occurredAt])
   @@index([entityType, entityId])
+}
+
+/** Solo hashes HMAC de identificadores; no persistir IP ni correo en claro. */
+model AuthThrottle {
+  key         String   @id @db.VarChar(64)
+  attempts    Int      @default(0)
+  windowStart DateTime
+  expiresAt   DateTime
+  @@index([expiresAt])
+}
+
+/** Desafíos de inicio de sesión de 5 minutos, sin sesión privilegiada antes de MFA. */
+model MfaLoginChallenge {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  tokenHash   String   @unique @db.VarChar(64)
+  attempts    Int      @default(0)
+  expiresAt   DateTime
+  consumedAt  DateTime?
+  user        AppUser  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, expiresAt])
+}
+
+model MfaRecoveryCode {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  digest      String   @unique @db.VarChar(64)
+  user        AppUser  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
+
+/** SANDBOX: los datos de cuenta ficticios se cifran; el match no acredita existencia real. */
+model VendorBankAccount {
+  id                String   @id @default(uuid()) @db.Uuid
+  vendorId          String   @unique @db.Uuid
+  organizationId    String   @db.Uuid
+  institutionCode   String   @db.VarChar(60)
+  accountKind       String   @db.VarChar(20)
+  accountCiphertext String   @db.Text
+  holderCiphertext  String   @db.Text
+  fingerprint       String   @db.VarChar(64)
+  maskedAccount     String   @db.VarChar(40)
+  revision          Int      @default(1)
+  enteredById       String   @db.Uuid
+  verifiedById      String?  @db.Uuid
+  verifiedVendorRevision Int?
+  status            String   @default("PENDING") @db.VarChar(30)
+  realBankConfirmed Boolean  @default(false)
+  verifiedAt        DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  vendor            Vendor   @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+  @@index([organizationId, status])
 }

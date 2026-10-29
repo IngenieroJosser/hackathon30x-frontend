@@ -1,4 +1,6 @@
 'use client';
+import Link from 'next/link';
+import {useRouter} from 'next/navigation';
 
 import { useState, type ReactNode } from 'react';
 import { Icon } from '@/components/ui/icon';
@@ -21,11 +23,12 @@ export function AppShell({children,alerts,onPendingClick,onSearchClick,currentPa
   children:ReactNode;alerts:number;onPendingClick:()=>void;onSearchClick:()=>void;currentPage?:'dashboard'|'policies'|'beneficiaries'|'invoices'|'invoice-detail'|'approvals'|'audit';
 }){
   const session=useSession();
+  const router=useRouter();
   const [menuOpen,setMenuOpen]=useState(false);
   const [notificationsOpen,setNotificationsOpen]=useState(false);
   const move=(anchor:string)=>{
     setMenuOpen(false);setNotificationsOpen(false);
-    if (currentPage !== 'dashboard') { window.location.href = anchor === 'inicio' ? '/' : `/#${anchor}`;return;}
+    if (currentPage !== 'dashboard') { router.push(anchor === 'inicio' ? '/' : `/#${anchor}`);return;}
     if(anchor==='approvals'){onPendingClick();return;}
     if(anchor==='inicio'){window.scrollTo({top:0,behavior:'smooth'});return;}
     document.getElementById(anchor)?.scrollIntoView({behavior:'smooth',block:'start'});
@@ -33,7 +36,7 @@ export function AppShell({children,alerts,onPendingClick,onSearchClick,currentPa
   return <div className="app-frame" id="inicio">
     {menuOpen&&<button className="mobile-scrim" type="button" aria-label="Cerrar menú" onClick={()=>setMenuOpen(false)}/>}
     <header className="topbar">
-      <a href="/" className="brand-logo" aria-label="Blinka Decision Engine, inicio"><span className="brand-mark" aria-hidden="true"><span/><span/></span><span className="brand-wordmark">blinka<span className="brand-dot">.</span></span><span className="brand-divider"/><span className="brand-product">DECISION ENGINE</span></a>
+      <Link href="/" className="brand-logo" aria-label="Blinka Decision Engine, inicio"><span className="brand-mark" aria-hidden="true"><span/><span/></span><span className="brand-wordmark">blinka<span className="brand-dot">.</span></span><span className="brand-divider"/><span className="brand-product">DECISION ENGINE</span></Link>
       <div className="topbar-center"><span className="header-slash">/</span><span>ATLAS GLOBAL INC.</span><span className="header-slash">/</span><span className="header-current">{currentPage === 'policies' ? 'POLICY CENTER' : currentPage === 'beneficiaries' ? 'TRUST REGISTRY' : currentPage === 'invoices' ? 'DOCUMENT STUDIO' : currentPage === 'invoice-detail' ? 'INVOICE CASE' : currentPage === 'approvals' ? 'HUMAN OVERSIGHT' : currentPage === 'audit' ? 'AUDIT TRAIL' : 'OVERVIEW'}</span></div>
       <div className="topbar-right">
         <span className="header-sandbox"><i/> SANDBOX MODE</span>
@@ -54,7 +57,7 @@ export function AppShell({children,alerts,onPendingClick,onSearchClick,currentPa
             const active = item.href === '/auditoria' ? currentPage === 'audit' : item.href === '/aprobaciones' ? currentPage === 'approvals' : item.href === '/politicas' ? currentPage === 'policies' : item.href === '/beneficiarios' ? currentPage === 'beneficiaries' : item.href === '/facturas' ? (currentPage === 'invoices' || currentPage === 'invoice-detail') : item.anchor === 'inicio' && currentPage === 'dashboard';
             const classes = `nav-item ${!item.anchor&&!item.href?'nav-disabled':''} ${active?'nav-active':''}`;
             const content = <><Icon name={item.icon} size={19}/><span className="nav-tooltip">{item.title}</span></>;
-            return item.href ? <a href={item.href} key={item.title} className={classes} aria-label={item.title} aria-current={active?'page':undefined} title={item.title} onClick={()=>setMenuOpen(false)}>{content}</a> : <button key={item.title} type="button" className={classes} title={item.anchor?item.title:`${item.title} · Disponible próximamente`} aria-label={item.title} aria-current={active?'page':undefined} disabled={!item.anchor} onClick={()=>item.anchor&&move(item.anchor)}>{content}</button>;
+            return item.href ? <Link href={item.href} key={item.title} className={classes} aria-label={item.title} aria-current={active?'page':undefined} title={item.title} onClick={()=>setMenuOpen(false)}>{content}</Link> : <button key={item.title} type="button" className={classes} title={item.anchor?item.title:`${item.title} · Disponible próximamente`} aria-label={item.title} aria-current={active?'page':undefined} disabled={!item.anchor} onClick={()=>item.anchor&&move(item.anchor)}>{content}</button>;
           })}
         </div>)}
       </nav>

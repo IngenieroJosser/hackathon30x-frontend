@@ -4,7 +4,7 @@ import { requirePermission } from '@/server/security/auth';
 
 type Params = { params: Promise<{ id: string }> };
 export async function GET(request: NextRequest, { params }: Params) {
-  const {actor,denied} = await requirePermission(request, 'read');
+  const {denied} = await requirePermission(request, 'read');
   if (denied) return denied;
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) return NextResponse.json({ error:'Identificador inválido.' },{status:400});

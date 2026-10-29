@@ -1,3 +1,5 @@
+import { readJsonBounded } from '@/server/security/request-body';
+import { WorkflowError } from '@/server/workflows/common';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/server/db/prisma';
 import { requirePermission } from '@/server/security/auth';
@@ -33,7 +35,7 @@ export async function POST(request: NextRequest) {
   if (Number(request.headers.get('content-length')||0)>10_000)
     return NextResponse.json({ error:'JSON demasiado grande.' }, { status:413 });
   try {
-    const json: unknown = await request.json();
+    const json: unknown = await readJsonBounded(request,10000);
     const input = registerInvoiceSchema.safeParse(json);
     if (!input.success) return NextResponse.json({ error:'Datos inválidos.', issues: input.error.flatten() }, { status:400 });
     const body = input.data;
@@ -65,6 +67,7 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json({ persisted:true, paymentExecuted:false, invoice }, { status:201,headers:noStore });
   } catch (error) {
+    if (error instanceof WorkflowError) return NextResponse.json({error:error.message},{status:error.status,headers:noStore});
     if (error instanceof SyntaxError || (error instanceof Error && error.message.startsWith('Fecha inexistente')))
       return NextResponse.json({ error:'JSON o fecha inválidos.' }, { status:400 });
     if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002')

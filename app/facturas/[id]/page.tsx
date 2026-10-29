@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { WorkspaceScreen } from '@/components/workspace/workspace-screen';
@@ -29,9 +30,9 @@ function InvoiceCaseFallback() {
   return (
     <main className="iv-page iv-route-loading" aria-busy="true">
       <div className="iv-route-loading-inner" role="status" aria-live="polite">
-        <a className="iv-route-loading-brand" href="/" aria-label="Volver al dashboard de Blinka">
+        <Link className="iv-route-loading-brand" href="/" aria-label="Volver al dashboard de Blinka">
           BLINKA<span>.</span> <small>DECISION ENGINE</small>
-        </a>
+        </Link>
         <span className="iv-kicker">DOCUMENT INTELLIGENCE / EXPEDIENTE</span>
         <h1>
           Cada decisión deja <em>evidencia.</em>
@@ -40,9 +41,9 @@ function InvoiceCaseFallback() {
         <div className="iv-route-loading-track" aria-hidden="true">
           <span />
         </div>
-        <a className="iv-route-loading-back" href="/facturas">
+        <Link className="iv-route-loading-back" href="/facturas">
           ← Volver al centro de facturas
-        </a>
+        </Link>
       </div>
     </main>
   );

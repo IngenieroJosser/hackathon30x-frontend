@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AppShell } from '@/components/layout/app-shell';
@@ -132,18 +133,18 @@ export function PolicyCenterPage(){
         <video autoPlay muted loop playsInline preload="none" aria-hidden="true" poster="/metal-human.jpg" className="policies-hero-video"><source src="/metal-human.mp4" type="video/mp4"/></video>
         <div className="policies-hero-overlay"/><div className="policies-hero-noise"/><div className="policies-hero-arc arc-one"/><div className="policies-hero-arc arc-two"/>
         <div className="policies-hero-body">
-          <div className="policies-breadcrumb"><a href="/">WORKSPACE</a><span>/</span>GOVERNANCE<span>/</span><strong>POLICY CENTER</strong></div>
+          <div className="policies-breadcrumb"><Link href="/">WORKSPACE</Link><span>/</span>GOVERNANCE<span>/</span><strong>POLICY CENTER</strong></div>
           <div className="policies-hero-kicker"><span className="policy-live-dot"/>AGENT GOVERNANCE <span>—</span> 01 / 04</div>
           <h1 id="policy-page-title">El agente decide.<br/><em>Tu empresa establece<br/>los límites.</em></h1>
           <p>Autonomía con reglas claras, supervisión humana y control financiero en cada decisión.</p>
-          <div className="policies-hero-actions"><a href="#configuracion" className="policy-hero-primary">Configurar políticas <Icon name="arrowDown" size={16}/></a><a href="#simulador" className="policy-hero-link">Probar una decisión <Icon name="arrowUp" size={15}/></a></div>
+          <div className="policies-hero-actions"><Link href="#configuracion" className="policy-hero-primary">Configurar políticas <Icon name="arrowDown" size={16}/></Link><Link href="#simulador" className="policy-hero-link">Probar una decisión <Icon name="arrowUp" size={15}/></Link></div>
         </div>
         <div className="policies-hero-index"><span>GOVERNANCE SYSTEM</span><strong>01<span>/</span>04</strong></div>
         <div className="policies-hero-watermark">RULES BEFORE AUTONOMY</div>
       </section>
 
       <div className="policies-workspace" id="configuracion">
-        <div className="policy-subnav" aria-label="Secciones de políticas"><div className="policy-subnav-title"><span className="policy-live-dot"/>POLICY CONTROL ROOM</div><nav><a href="#limites">01 / LÍMITES</a><a href="#controles">02 / CONTROLES</a><a href="#simulador">03 / SIMULACIÓN</a><a href="#historial">04 / HISTORIAL</a></nav><span className="policy-subnav-version">{active.version}</span></div>
+        <div className="policy-subnav" aria-label="Secciones de políticas"><div className="policy-subnav-title"><span className="policy-live-dot"/>POLICY CONTROL ROOM</div><nav><Link href="#limites">01 / LÍMITES</Link><Link href="#controles">02 / CONTROLES</Link><Link href="#simulador">03 / SIMULACIÓN</Link><Link href="#historial">04 / HISTORIAL</Link></nav><span className="policy-subnav-version">{active.version}</span></div>
         <div className="policy-page-header"><div><PolicyEyebrow number="01">CONFIGURACIÓN EMPRESARIAL</PolicyEyebrow><h2>Control de <span>políticas.</span></h2><p>Define qué puede autorizar el agente, qué debe detener y cuándo necesita a una persona.</p></div><div className="policy-page-header-actions"><span className="policy-active-state"><span className="policy-live-dot"/> POLÍTICA ACTIVA</span><button type="button" className="policy-button policy-button-ghost" onClick={download}><Icon name="download" size={15}/> Exportar</button></div></div>
         <div className="policy-sandbox-alert"><Icon name="info" size={17}/><p><strong>ENTORNO DE SIMULACIÓN.</strong> Los cambios se guardan en este navegador y pueden influir en las nuevas evaluaciones del dashboard. No constituyen un control de autorización en un sistema de pagos real.</p><span>NO REAL PAYMENTS</span></div>
 
@@ -181,7 +182,7 @@ export function PolicyCenterPage(){
           <aside className="policy-right-col">
             <section className="policy-agent-card" aria-labelledby="policy-agent-title"><div className="policy-agent-orbit orbit-out"/><div className="policy-agent-orbit orbit-in"/><div className="policy-agent-core"><Icon name="shield" size={24}/></div><div className="policy-agent-top"><span><i/> GOVERNANCE STATUS</span><Icon name="more" size={19}/></div><div className="policy-agent-main"><small>PROTECTED BY DESIGN</small><h2 id="policy-agent-title">Libertad para operar.<br/><em>Límites para proteger.</em></h2><p>Cada decisión pasa por las políticas. La IA interpreta; las reglas autorizan.</p></div><div className="policy-agent-bottom"><span><Icon name="check" size={14}/> 6 SAFEGUARDS ENABLED</span><span>{active.version}</span></div></section>
             <div className="policy-logic-panel"><div className="policy-side-eyebrow">DECISION HIERARCHY / 03</div><h3>Una decisión.<br/><em>Tres salidas.</em></h3><div className="policy-flow-list"><div><span className="policy-flow-dot policy-flow-red"/><span><strong>01 / BLOQUEAR</strong><small>Si incumple una regla estricta</small></span><Icon name="lock" size={16}/></div><div><span className="policy-flow-dot policy-flow-amber"/><span><strong>02 / ESCALAR</strong><small>Si requiere revisión humana</small></span><Icon name="users" size={16}/></div><div><span className="policy-flow-dot policy-flow-green"/><span><strong>03 / AUTORIZAR</strong><small>Solo si todos los controles pasan</small></span><Icon name="check" size={16}/></div></div><p><Icon name="info" size={14}/> Las prohibiciones tienen prioridad sobre las aprobaciones.</p></div>
-            <div className="policy-snapshot-card"><div className="policy-side-eyebrow">ACTIVE SNAPSHOT</div><div className="policy-snapshot-title"><span>Política publicada</span><Icon name="external" size={15}/></div><strong>{active.version}</strong><p>Los cambios publicados quedan registrados en el historial local.</p><a href="#historial">Ver historial <Icon name="arrow" size={15}/></a></div>
+            <div className="policy-snapshot-card"><div className="policy-side-eyebrow">ACTIVE SNAPSHOT</div><div className="policy-snapshot-title"><span>Política publicada</span><Icon name="external" size={15}/></div><strong>{active.version}</strong><p>Los cambios publicados quedan registrados en el historial local.</p><Link href="#historial">Ver historial <Icon name="arrow" size={15}/></Link></div>
           </aside>
         </div>
 

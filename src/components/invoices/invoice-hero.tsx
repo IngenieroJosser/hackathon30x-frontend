@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import {Icon} from '@/components/ui/icon';
 
 export function InvoiceHero({onImport,mode='list'}:{onImport?:()=>void;mode?:'list'|'detail'}){
@@ -9,8 +10,8 @@ export function InvoiceHero({onImport,mode='list'}:{onImport?:()=>void;mode?:'li
       <h1>De un documento.<br/><em>A una decisión.</em></h1>
       <p>Recibe cada factura, interpreta sus datos, contrástalos con los acuerdos y deja que las políticas decidan. Tú conservas el control.</p>
       <div className="iv-hero-actions">
-        {onImport?<button className="iv-button iv-button-primary" type="button" onClick={onImport}><Icon name="plus" size={17}/> Nueva factura <Icon name="arrowUp" size={15}/></button>:<a className="iv-button iv-button-primary" href="/facturas"><Icon name="arrow" size={16}/> Volver al centro de facturas</a>}
-        <a className="iv-button iv-button-ghost" href="/politicas"><Icon name="shield" size={16}/> Ver políticas</a>
+        {onImport?<button className="iv-button iv-button-primary" type="button" onClick={onImport}><Icon name="plus" size={17}/> Nueva factura <Icon name="arrowUp" size={15}/></button>:<Link className="iv-button iv-button-primary" href="/facturas"><Icon name="arrow" size={16}/> Volver al centro de facturas</Link>}
+        <Link className="iv-button iv-button-ghost" href="/politicas"><Icon name="shield" size={16}/> Ver políticas</Link>
       </div>
       <div className="iv-hero-foot"><span>01 / CAPTURE</span><i/><span>02 / EXTRACT</span><i/><span>03 / VERIFY</span><i/><span>04 / DECIDE</span></div>
     </div>

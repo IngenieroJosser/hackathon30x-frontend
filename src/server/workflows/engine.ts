@@ -1,4 +1,5 @@
 import 'server-only';
+import {bankStatusAcceptable,syntheticAuthorizationsEnabled} from './banking';
 import type { Prisma } from '@/generated/prisma/client';
 import { organization, WorkflowError, asCents, toMoney, norm, normInvoice, serializable, type DbTx } from './common';
 
@@ -11,7 +12,7 @@ async function context(tx:DbTx,invoiceId:string,orgId:string) {
   if(!invoice)throw new WorkflowError('Factura no encontrada.',404);
   const policy=await tx.paymentPolicy.findFirst({where:{organizationId:orgId,isActive:true},orderBy:{version:'desc'}});
   if(!policy)throw new WorkflowError('No existe una política activa.',409);
-  const vendor=invoice.vendorName?await tx.vendor.findUnique({where:{organizationId_normalizedName:{organizationId:orgId,normalizedName:norm(invoice.vendorName)}},include:{agreements:{orderBy:{version:'desc'},take:1}}}):null;
+  const vendor=invoice.vendorName?await tx.vendor.findUnique({where:{organizationId_normalizedName:{organizationId:orgId,normalizedName:norm(invoice.vendorName)}},include:{agreements:{orderBy:{version:'desc'},take:1},bankAccount:true}}):null;
   const month=new Date();const start=new Date(Date.UTC(month.getUTCFullYear(),month.getUTCMonth(),1));
   const next=new Date(Date.UTC(month.getUTCFullYear(),month.getUTCMonth()+1,1));
   const budget=await tx.budgetPeriod.upsert({
@@ -27,7 +28,7 @@ async function calculate(tx:DbTx,orgId:string,invoiceId:string):Promise<{ evalua
   const remaining=asCents(budget.allocation.toString())-asCents(budget.reserved.toString())-asCents(budget.consumed.toString());
   const snapshot={id:policy.id,version:policy.version,autonomousLimit:policy.autonomousLimit.toString(),hardLimit:policy.hardLimit.toString(),monthlyBudget:policy.monthlyBudget.toString(),currency:policy.currency};
   const agreement=vendor?.agreements[0];
-  const vendorSnapshot=vendor?{id:vendor.id,name:vendor.name,status:vendor.status,revision:vendor.revision,agreementId:agreement?.id??null,agreementReference:agreement?.reference??null,agreementLimit:agreement?.amountLimit.toString()??null,agreementCurrency:agreement?.currency??null}:undefined;
+  const vendorSnapshot=vendor?{id:vendor.id,name:vendor.name,status:vendor.status,revision:vendor.revision,agreementId:agreement?.id??null,agreementReference:agreement?.reference??null,agreementLimit:agreement?.amountLimit.toString()??null,agreementCurrency:agreement?.currency??null,bankStatus:vendor.bankAccount?.status??'NOT_CONFIGURED',realBankConfirmed:vendor.bankAccount?.realBankConfirmed??false,bankRevision:vendor.bankAccount?.revision??null}:undefined;
   const result=(outcome:Outcome,ruleCode:string,reason:string,checks:string[]):Evaluation=>({outcome,ruleCode,reason,checks,vendorId:vendor?.id,agreementId:agreement?.id,vendorSnapshot,policySnapshot:snapshot,remainingCents:remaining});
   if(!invoice.externalNumber || !invoice.vendorName || !invoice.amount || !invoice.currency || !invoice.dueDate || !invoice.verifiedAt)
     return {evaluation:result('ESCALATED','UNVERIFIED_DOCUMENT','Faltan campos críticos o confirmación documental.',['Documento no confirmado']),context:ctx};
@@ -46,6 +47,8 @@ async function calculate(tx:DbTx,orgId:string,invoiceId:string):Promise<{ evalua
   }
   if(duplicate) return {evaluation:result('BLOCKED','DUPLICATE_INVOICE',`La factura coincide con otro expediente (${duplicate.externalNumber}).`,['Identidad de cobro duplicada']),context:ctx};
   if(!vendor || vendor.status!=='AUTHORIZED')return {evaluation:result('BLOCKED','VENDOR_NOT_ALLOWED','El beneficiario no está autorizado.',[vendor?'Beneficiario en revisión o bloqueado':'Beneficiario desconocido']),context:ctx};
+  if(!bankStatusAcceptable(vendor.bankAccount,vendor.revision,syntheticAuthorizationsEnabled()))
+    return {evaluation:result('BLOCKED','BANK_ACCOUNT_NOT_VERIFIED','La cuenta bancaria del beneficiario no tiene verificación vigente para esta versión. No se permite autorizar.',['Cuenta ausente, modificada, no verificada o sin habilitación explícita del sandbox']),context:ctx};
   if(invoice.currency!==currency)return {evaluation:result('ESCALATED','CURRENCY_REVIEW_REQUIRED','Moneda sin conversión verificable. No se autoriza.', ['Requiere política FX verificable']),context:ctx};
   if(!agreement || agreement.currency!==currency)return {evaluation:result('BLOCKED','AGREEMENT_MISSING','Falta un acuerdo comercial vigente en USD.', ['Acuerdo no disponible']),context:ctx};
   const cents=asCents(invoice.amount.toString());

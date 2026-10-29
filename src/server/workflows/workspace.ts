@@ -2,6 +2,7 @@ import 'server-only';
 import type { Prisma } from '@/generated/prisma/client';
 import { getPrisma } from '@/server/db/prisma';
 import { organization, norm, WorkflowError, serializable } from './common';
+import {bankStatusAcceptable,syntheticAuthorizationsEnabled} from './banking';
 import { validateDemoPolicy } from '@/lib/policy-validation';
 
 export async function workspaceSnapshot(){
@@ -10,7 +11,7 @@ export async function workspaceSnapshot(){
  return getPrisma().$transaction(async tx=>{
   const [policy,vendors,invoices,approvals,audit,budget]=await Promise.all([
    tx.paymentPolicy.findFirst({where:{organizationId:org.id,isActive:true},orderBy:{version:'desc'}}),
-   tx.vendor.findMany({where:{organizationId:org.id},include:{agreements:{orderBy:{version:'desc'}}},orderBy:{name:'asc'},take:300}),
+   tx.vendor.findMany({where:{organizationId:org.id},include:{agreements:{orderBy:{version:'desc'}},bankAccount:{select:{status:true,maskedAccount:true,revision:true,realBankConfirmed:true,verifiedAt:true,verifiedVendorRevision:true}}},orderBy:{name:'asc'},take:300}),
    tx.invoice.findMany({where:{organizationId:org.id},include:{document:true,extractions:{orderBy:{createdAt:'desc'},take:1},decisions:{orderBy:{revision:'desc'},take:1}},orderBy:{createdAt:'desc'},take:250}),
    tx.approvalRequest.findMany({where:{invoice:{organizationId:org.id}},include:{invoice:true,decision:true},orderBy:{requestedAt:'desc'},take:100}),
    tx.auditEvent.findMany({where:{organizationId:org.id},include:{actor:{select:{id:true,displayName:true,email:true,role:true}}},orderBy:{occurredAt:'desc'},take:400}),
@@ -63,7 +64,11 @@ export async function changeVendorStatus(id:string,status:'AUTHORIZED'|'REVIEW'|
  return serializable(async tx=>{
   const vendor=await tx.vendor.findFirst({where:{id,organizationId:org.id}});
   if(!vendor)throw new WorkflowError('Beneficiario no encontrado.',404);
-  const update=await tx.vendor.update({where:{id},data:{status,revision:{increment:1}}});
+  if(status==='AUTHORIZED'){
+    const account=await tx.vendorBankAccount.findUnique({where:{vendorId:id}});
+    if(!bankStatusAcceptable(account,vendor.revision,syntheticAuthorizationsEnabled()))throw new WorkflowError('No puedes autorizar sin verificación bancaria vigente y modo sandbox explícito.',409);
+  }
+  const update=await tx.vendor.update({where:{id},data:{status,revision:status==='AUTHORIZED'?undefined:{increment:1}}});
   await tx.auditEvent.create({data:{organizationId:org.id,actorId,entityType:'Vendor',entityId:id,action:'VENDOR_STATUS_CHANGED',data:{previous:vendor.status,status,revision:update.revision}}});
   return {id,status:update.status};
  });

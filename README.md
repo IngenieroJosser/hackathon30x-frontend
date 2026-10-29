@@ -1,3 +1,5 @@
+> **SEMILLERO — FASE 2 (MFA + VERIFICACIÓN BANCARIA SINTÉTICA):** consulta [la guía de instalación, pruebas y límites de seguridad](docs/SEMILLERO_SEGURIDAD_FASE2.md). Para operar el nuevo código necesitas ejecutar la migración `20261029000000_mfa_banking` y configurar dos claves distintas de cifrado. No admite pagos reales.
+
 <div align="center">
 
 # Blinka Decision Engine
@@ -119,7 +121,7 @@ tests/                           Pruebas automatizadas
 - **Node.js 22** o versión compatible con Next.js 16.
 - **Yarn 4.14.1** mediante Corepack.
 - Una base de datos **Neon PostgreSQL**.
-- Una clave de la **API de OpenAI** para extracción de PDF e imágenes.
+- Opcional: una clave de la **API de OpenAI** para extracción de PDF e imágenes; el texto plano funciona sin ella.
 - `python3` y `curl` para los scripts de comprobación.
 
 ## Instalación local
@@ -138,7 +140,11 @@ DATABASE_URL="postgresql://USUARIO:CONTRASENA@HOST-POOLER/neondb?sslmode=require
 # Conexión para migraciones, seed y bootstrap: sin pooler
 DIRECT_URL="postgresql://USUARIO:CONTRASENA@HOST-DIRECTO/neondb?sslmode=require"
 
+# Opcional: sólo para extracción multimodal de PDF/imagen
 OPENAI_API_KEY="TU_CLAVE_PRIVADA"
+
+# Obligatoria en producción: generar con openssl rand -hex 32
+AUTH_THROTTLE_SECRET="" # Reemplazar con resultado de: openssl rand -hex 32
 OPENAI_EXTRACTION_MODEL="gpt-4.1-mini"
 BLINKA_DEMO_ORGANIZATION_SLUG="atlas-global-demo"
 ```
@@ -232,7 +238,7 @@ Si se cumplen esas condiciones, la aplicación verifica el expediente y ejecuta 
 
 Un documento desconocido, modificado o ambiguo **requiere confirmación humana**. Las leyendas «documento ficticio» y «sin validez fiscal» no constituyen, por sí solas, errores de extracción.
 
-Detalles: [`docs/autonomia-certificada.md`](./docs/autonomia-certificada.md).
+La autonomía certificada sigue limitada al manifiesto de demostración. El documento referenciado anteriormente no estaba incluido en el ZIP de origen.
 
 ## Demostración recomendada
 
@@ -283,7 +289,7 @@ yarn test:smoke:integration
 
 Los **smoke tests interactúan con la base configurada**; el de integración registra facturas ficticias y eventos de auditoría. Úsalos contra una rama de prueba de Neon.
 
-**Última evidencia reportada para v16:** 97/97 pruebas automatizadas correctas y build local de Next.js exitoso, con TypeScript y prerender sin fallos. En versiones previas se validaron también la matriz RBAC y un flujo de integración con Neon. **Sigue pendiente documentar una evaluación E2E completa de los 14 documentos y el flujo de aprobación humano en el despliegue final.**
+**Evidencia histórica de v16:** 97/97 pruebas automatizadas correctas y build local de Next.js exitoso, con TypeScript y prerender sin fallos. En versiones previas se validaron también la matriz RBAC y un flujo de integración con Neon. **Sigue pendiente documentar una evaluación E2E completa de los 14 documentos y el flujo de aprobación humano en el despliegue final.**
 
 ## Despliegue en Vercel
 
@@ -296,7 +302,7 @@ Conecta el repositorio a Vercel y configura:
 | Build Command | `yarn build` |
 | Output Directory | Valor predeterminado de Next.js |
 
-En **Environment Variables** configura `DATABASE_URL`, `DIRECT_URL`, `OPENAI_API_KEY`, `OPENAI_EXTRACTION_MODEL` y `BLINKA_DEMO_ORGANIZATION_SLUG` para el entorno correspondiente.
+En **Environment Variables** configura `DATABASE_URL`, `DIRECT_URL`, `AUTH_THROTTLE_SECRET` y `BLINKA_DEMO_ORGANIZATION_SLUG`. Si utilizas extracción multimodal, agrega `OPENAI_API_KEY` y `OPENAI_EXTRACTION_MODEL`. El inicio de sesión de producción falla si falta `AUTH_THROTTLE_SECRET` o si no está aplicada la migración de limitación de intentos.
 
 **No ejecutes `db:seed`, `auth:bootstrap` ni migraciones en cada build.** Inicializa la base y las cuentas de forma controlada antes de publicar. Las credenciales de bootstrap (`BLINKA_*_PASSWORD`) no tienen que existir en Vercel para el inicio de sesión normal: los hashes de las cuentas ya creadas están en Neon.
 
@@ -311,6 +317,10 @@ La evaluación del reto se basa en tres criterios:
 - **Explicabilidad:** cualquier persona autorizada puede reconstruir el motivo de la decisión sin inspeccionar el código.
 
 Las pruebas unitarias ayudan, pero **no sustituyen** el contraste de los 14 documentos con resultados esperados ni una demostración end-to-end del proceso de aprobación.
+
+## Semillero: seguridad gratuita (fase 1)
+
+Esta versión incorpora limitación persistente de accesos en PostgreSQL, validación por firma binaria de archivos, protección inicial de texto contra prompt injection, cabeceras de seguridad, lectura JSON acotada y simulador bancario **desconectado del motor de decisiones**. Ejecuta `yarn db:deploy` para crear `AuthThrottle`. Guía, límites y evidencia: [`docs/SEMILLERO_SEGURIDAD_FASE1.md`](./docs/SEMILLERO_SEGURIDAD_FASE1.md).
 
 ## Límites del prototipo
 

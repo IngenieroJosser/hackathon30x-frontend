@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppShell } from '@/components/layout/app-shell';
@@ -34,7 +35,7 @@ function RegistryHero({onNew,onExplore,count}:{onNew:()=>void;onExplore:()=>void
   return <section className="bn-hero" aria-labelledby="bn-hero-title">
     <video className="bn-hero-video" autoPlay loop muted playsInline preload="metadata" poster="/metal-human.jpg" aria-hidden="true"><source src="/metal-human.mp4" type="video/mp4"/></video>
     <div className="bn-hero-overlay"/><div className="bn-hero-grid" aria-hidden="true"/><div className="bn-hero-halo" aria-hidden="true"/>
-    <div className="bn-hero-content"><div className="bn-breadcrumb"><a href="/">WORKSPACE</a><Icon name="chevron" size={11}/><span>BENEFICIARIOS</span></div>
+    <div className="bn-hero-content"><div className="bn-breadcrumb"><Link href="/">WORKSPACE</Link><Icon name="chevron" size={11}/><span>BENEFICIARIOS</span></div>
       <div className="bn-live"><i/> 03 / TRUST REGISTRY <span>—</span> CONTROL DE DESTINATARIOS</div>
       <h1 id="bn-hero-title">Cada pago tiene<br/>un destino<span>.</span><br/><em>Cada destino, una regla.</em></h1>
       <p>Una única fuente de confianza para los beneficiarios, sus acuerdos y los límites que protegen cada decisión del agente.</p>
@@ -154,7 +155,7 @@ export function BeneficiariesPage(){
           </>:<p>No hay beneficiarios registrados.</p>}</aside>
         </div>
         <section className="bn-bottom-grid"><div className="bn-trace" id="actividad"><div className="bn-bottom-heading"><div><span className="bn-eyebrow">04 / TRACEABILITY</span><h2>Cada cambio deja huella<span>.</span></h2></div><span>REGISTRO LOCAL</span></div>{events.length?events.slice(0,5).map(event=><div className="bn-event" key={event.id}><span className="bn-event-symbol"><Icon name={event.action==='authorized'?'check':event.action==='blocked'?'lock':event.action==='created'?'plus':'refresh'} size={15}/></span><div><strong>{eventText[event.action]}</strong><p>{event.name} · Registro r{event.revision} · {event.actor}</p></div><time dateTime={event.occurredAt}>{new Date(event.occurredAt).toLocaleString('es-CO',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</time></div>):<div className="bn-event-empty"><Icon name="audit" size={22}/><div><strong>Sin modificaciones registradas en este navegador.</strong><p>Crear, editar o cambiar el estado de un beneficiario generará una entrada trazable.</p></div></div>}</div>
-        <div className="bn-principle"><div className="bn-principle-top"><span className="bn-eyebrow">THE TRUST PRINCIPLE</span><Icon name="sparkles" size={20}/></div><div className="bn-principle-art"><div className="bn-principle-orbit"/><div className="bn-principle-orbit bn-orbit-two"/><Icon name="shield" size={40}/></div><h2>No es a quién<br/>el agente <em>quiere pagar.</em><br/>Es a quién <em>puede pagar.</em></h2><p>Los beneficiarios y sus acuerdos se verifican antes de aplicar umbrales y presupuestos. Si el destinatario no está autorizado, la evaluación se bloquea.</p><a href="/politicas">Explorar políticas <Icon name="arrowUp" size={15}/></a></div></section>
+        <div className="bn-principle"><div className="bn-principle-top"><span className="bn-eyebrow">THE TRUST PRINCIPLE</span><Icon name="sparkles" size={20}/></div><div className="bn-principle-art"><div className="bn-principle-orbit"/><div className="bn-principle-orbit bn-orbit-two"/><Icon name="shield" size={40}/></div><h2>No es a quién<br/>el agente <em>quiere pagar.</em><br/>Es a quién <em>puede pagar.</em></h2><p>Los beneficiarios y sus acuerdos se verifican antes de aplicar umbrales y presupuestos. Si el destinatario no está autorizado, la evaluación se bloquea.</p><Link href="/politicas">Explorar políticas <Icon name="arrowUp" size={15}/></Link></div></section>
         <footer className="site-footer bn-footer"><span>© 2026 BLINKA DECISION ENGINE / BENEFICIARY CONTROL</span><span>UN CONCEPTO DE ZYRA · SANDBOX / NO REAL PAYMENTS</span></footer>
       </div>
     </div>
