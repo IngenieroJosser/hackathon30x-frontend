@@ -9,9 +9,19 @@ test('ruta global not-found usa un componente de servidor y no consulta el reloj
   const route = read('app/not-found.tsx');
   const component = read('src/components/errors/not-found-experience.tsx');
   assert.match(route, /export default function NotFound\(/);
+  assert.match(route, /export const metadata:\s*Metadata/);
   assert.doesNotMatch(route + component, /['"]use client['"]|new Date\s*\(|Date\.now\s*\(|Math\.random\s*\(/);
   assert.match(component, /aria-labelledby="nf-heading"/);
   assert.match(component, /<h1 id="nf-heading">/);
+});
+
+test('404 define metadatos propios y evita su indexación', () => {
+  const route = read('app/not-found.tsx');
+  assert.match(route, /title:\s*'Página no encontrada \(404\)'/);
+  assert.match(route, /description:\s*['"`][\s\S]*FinVigía/);
+  assert.match(route, /index:\s*false/);
+  assert.match(route, /follow:\s*true/);
+  assert.match(route, /noimageindex:\s*true/);
 });
 
 test('404 ofrece salidas seguras y explicita el entorno de demostración', () => {
