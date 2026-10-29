@@ -471,3 +471,12 @@ El nombre elegido es un **nombre de trabajo académico**. No equivale a una cert
 *Prototipo académico. Solo datos ficticios y decisiones simuladas.*
 
 </div>
+
+
+## Identidad visual y SEO de FinVigía
+
+Se incluyen un favicon nuevo, `apple-icon.png`, logos SVG, iconos 192/512 y la imagen Open Graph en `public/seo/finvigia-open-graph.png`. La página pública `/proyecto` presenta el alcance académico sin exponer el panel privado. El resto de la aplicación se mantiene con `noindex`.
+
+Antes de solicitar indexación, configura `NEXT_PUBLIC_SITE_URL` con la URL HTTPS real y estable (por ejemplo, tu dominio propio o el dominio de Vercel que usarás definitivamente). Luego comprueba `/proyecto`, `/robots.txt`, `/sitemap.xml` y `/manifest.webmanifest`. No publiques nunca las rutas privadas en el sitemap.
+
+`GOOGLE_SITE_VERIFICATION` es opcional si verificas el dominio en Search Console. El JSON-LD describe la aplicación sin inventar reseñas, precios ni acreditaciones bancarias. Para instrucciones completas consulta `docs/SEO_FINVIGIA.md`.

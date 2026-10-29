@@ -1,21 +1,24 @@
 'use client';
 import {createContext,useContext,useEffect,useState,type FormEvent,type ReactNode} from 'react';
+import {usePathname} from 'next/navigation';
 import type {UserRole} from '@/server/security/roles';
 export type SessionUser={id:string;email:string;displayName:string;role:UserRole};
 const SessionContext=createContext<{user:SessionUser;signOut:()=>Promise<void>}|null>(null);
 export function useSession(){return useContext(SessionContext);}
 type Step='password'|'challenge'|'enroll'|'recovery';
 export function AccessGate({children}:{children:ReactNode}){
+ const pathname=usePathname();
+ const isPublicProjectPage=pathname==='/proyecto';
  const [user,setUser]=useState<SessionUser|null>(null),[checking,setChecking]=useState(true);
  const [step,setStep]=useState<Step>('password');
  const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[code,setCode]=useState('');
  const [secret,setSecret]=useState(''),[recoveryCodes,setRecoveryCodes]=useState<string[]>([]);
  const [error,setError]=useState(''),[busy,setBusy]=useState(false);
- useEffect(()=>{let alive=true;fetch('/api/auth/session',{cache:'no-store',credentials:'same-origin'})
+ useEffect(()=>{if(isPublicProjectPage)return;let alive=true;fetch('/api/auth/session',{cache:'no-store',credentials:'same-origin'})
    .then(async r=>{if(!r.ok)throw new Error('No se pudo comprobar la sesión.');return r.json();})
    .then(j=>{if(alive){setUser(j.user??null);if(j.mfaSetupRequired)setStep('enroll');else if(j.mfaChallengeRequired)setStep('challenge');}})
    .catch(()=>{if(alive)setError('No se pudo comprobar la sesión.');})
-   .finally(()=>{if(alive)setChecking(false);});return()=>{alive=false;};},[]);
+   .finally(()=>{if(alive)setChecking(false);});return()=>{alive=false;};},[isPublicProjectPage]);
  async function json(path:string,payload:unknown){
   const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',cache:'no-store',body:JSON.stringify(payload)});
   const result=await response.json();if(!response.ok)throw new Error(result.error??'Operación no disponible.');return result;
@@ -43,6 +46,7 @@ export function AccessGate({children}:{children:ReactNode}){
   catch(e){setError(e instanceof Error?e.message:'Error en la sesión.');}finally{setBusy(false);}
  }
  async function signOut(){setBusy(true);try{const r=await fetch('/api/auth/session',{method:'DELETE',credentials:'same-origin'});if(!r.ok)throw new Error('No fue posible cerrar sesión.');setUser(null);setSecret('');setRecoveryCodes([]);window.location.assign('/');}catch(e){setError(e instanceof Error?e.message:'Error al salir.');}finally{setBusy(false);}}
+ if(isPublicProjectPage)return <>{children}</>;
  return <SessionContext.Provider value={user?{user,signOut}:null}>
    {checking&&<main className="ws-auth"><div className="ws-auth-panel"><strong>FINVIGIA<span>.</span> DECISION ENGINE</strong><p>Comprobando sesión personal en Neon…</p></div></main>}
    {!checking&&!user&&<main className="ws-auth"><video autoPlay loop muted playsInline poster="/metal-human.jpg" aria-hidden="true"><source src="/metal-human.mp4" type="video/mp4"/></video><div className="ws-auth-panel"><span className="ws-eyebrow">FINVIGIA / SECURITY · ACCESO CON MFA</span><h1>Inteligencia con<br/><em>control.</em></h1>
@@ -50,7 +54,7 @@ export function AccessGate({children}:{children:ReactNode}){
    {step==='challenge'&&<><p>Introduce el código de seis dígitos de tu aplicación autenticadora. También puedes usar uno de los códigos de recuperación guardados.</p><form onSubmit={handleChallenge}><label htmlFor="mfa-code">Código MFA o recuperación</label><input id="mfa-code" autoFocus autoComplete="one-time-code" required value={code} onChange={e=>setCode(e.target.value)} maxLength={32} placeholder="000000"/><button disabled={busy}>{busy?'Verificando…':'Verificar segundo factor →'}</button></form></>}
    {step==='enroll'&&<><p>Activación obligatoria de MFA TOTP. Instala una app compatible (Google Authenticator, Aegis, etc.). No se requiere Azure.</p>{!secret?<button disabled={busy} onClick={startEnrollment}>Generar clave TOTP →</button>:<><p>En tu app autenticadora, agrega una cuenta manual con emisor <strong>FinVigía</strong> y clave:</p><p style={{overflowWrap:'anywhere',fontFamily:'monospace',userSelect:'all'}}>{secret}</p><p>Algoritmo SHA-1 · 6 dígitos · 30 segundos. No envíes esta clave a nadie.</p><form onSubmit={confirmEnrollment}><label htmlFor="mfa-enroll-code">Código generado en la app</label><input id="mfa-enroll-code" autoComplete="one-time-code" autoFocus required inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={code} onChange={e=>setCode(e.target.value)}/><button disabled={busy}>Activar MFA →</button></form></>}</>}
    {step==='recovery'&&<><p><strong>MFA activado.</strong> Copia tus ocho códigos de recuperación y guárdalos en un lugar privado, preferiblemente fuera de este dispositivo. Se muestran una sola vez.</p><pre style={{whiteSpace:'pre-wrap',userSelect:'all',padding:'12px',background:'#131c29',borderRadius:'8px'}}>{recoveryCodes.join('\n')}</pre><button disabled={busy} onClick={continueAfterRecovery}>Ya guardé los códigos. Acceder →</button></>}
-   {error&&<p role="alert" className="ws-auth-error">{error}</p>}<small>Semillero académico · Datos sintéticos · No ejecuta transferencias</small></div></main>}
+   {error&&<p role="alert" className="ws-auth-error">{error}</p>}<small>Semillero académico · Datos sintéticos · No ejecuta transferencias · <a href="/proyecto">Sobre el proyecto</a></small></div></main>}
    <div hidden={checking||!user} style={{display:checking||!user?'none':undefined}} aria-hidden={checking||!user}>{children}</div>
  </SessionContext.Provider>;
 }
